@@ -9,7 +9,8 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     :param p_starting: starting pressure in Pa
     :param Ox_inject_temp: temperature of oxygen injection in K
     :param phi: equivalence ratio
-    :return:
+    :return T the temperature of the first enthalpy exchanger
+    :return del_h_total the total enthalpy change in the first enthalpy exchanger
     '''
 
 
@@ -34,11 +35,17 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     del_h_total = del_h2_hat*mols_h2 + del_o2_hat*mols_o2
     # At this point the chemical equation is O2 + mols*H2 -> (phi-2)*H2 +2H2O
     del_h_total = del_h_total + 2*h_f_h2o
-    print('first reaction enthalpy = ', del_h_total, 'J')
 
-    h_h2o_int = h2o_tableT(del_h_total)
-    print('h_h2o_int = ', h_h2o_int, 'J')
-    # h_h2_int = h2_tableT(del_h_total)
-    #
-    #
-    # print('h_h2_int = ', h_h2_int, 'J')
+    # weighting function
+    r = 0.17947269916082
+    q = (1- r)/2
+
+    T_h2o = h2o_tableT(q*del_h_total)
+    T_h2 = h2_tableT(r*del_h_total)
+
+    T = (T_h2o + T_h2)/2
+
+    return T, del_h_total
+
+
+

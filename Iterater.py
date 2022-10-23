@@ -163,15 +163,15 @@ def h2o_tableT(h_hat):
     '''
     h2o_table = pd.read_csv('./tables/H2O_table.csv')
 
-    idx = (h2o_table['h_hat']-h_hat).abs().idxmin()
-    h_hat_cloest = h2o_table['h_hat'][idx]
+    idx = (h2o_table['h_f']-h_hat).abs().idxmin()
+    h_hat_cloest = h2o_table['h_f'][idx]
     T_close = h2o_table['T'][idx]
     if h_hat > h_hat_cloest:
-        h_hat_upper = h2o_table['h_hat'][idx+1]
+        h_hat_upper = h2o_table['h_f'][idx+1]
         T_upper = h2o_table['T'][idx+1]
         T = T_close + (T_upper-T_close)/(h_hat_upper-h_hat_cloest)*(h_hat-h_hat_cloest)
     else:
-        h_hat_lower = h2o_table['h_hat'][idx-1]
+        h_hat_lower = h2o_table['h_f'][idx-1]
         T_lower = h2o_table['T'][idx-1]
         T = T_close + (T_lower-T_close)/(h_hat_lower-h_hat_cloest)*(h_hat-h_hat_cloest)
 

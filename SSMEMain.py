@@ -12,5 +12,8 @@ if __name__ == '__main__':
     phi = (FuelOxidizer_ratio* mol_O2 / mol_H2)/2
     Hydr_inject_temp = 850 #K
     Ox_inject_temp = 530   #K
-    FEE = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
+    FEE_T, FEE_del_h_total = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
+
+    print('Temperature of the first enthalpy exchanger = ', FEE_T, 'K')
+    print('Total enthalpy change in the first enthalpy exchanger = ', FEE_del_h_total, 'J')
 
