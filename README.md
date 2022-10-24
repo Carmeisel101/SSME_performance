@@ -8,7 +8,7 @@ This is a simple model of the Space Shuttle Main Engine (SSME) performance. It i
 | Combustion Chamber Data | |
 |--------------------------| ----|
 |Fuel|  Hydrogen |
-|Oxidizer| O2 |
+|Oxidizer| $O_{2}$ |
 |Fuel/Oxidizer Ratio | 0.166 |
 | Hydrogen Injection Temperature |  850 K |
 | Oxygen Injection Temperature |  530 K |
