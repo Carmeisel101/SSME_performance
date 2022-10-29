@@ -19,6 +19,7 @@ This is a simple model of the Space Shuttle Main Engine (SSME) performance. It i
 | $R_{t}$ |  5.15 in |
 | $R_{e}$ |  45.35 in |
 | $\theta_{p}$ |  32.00 deg |
+
 </div>
 
 
@@ -60,3 +61,16 @@ $\Delta \hat{h_{r}} = \Phi \Delta \hat{h_{H_{2}}} + 2( \Delta \hat{h_{H_{2}O}} )
 </div>
 
 We are to then interpolate this value from the given turn tables to get the actual value of the combustion temperature for Oxygen First Enthalpy Exchanger. This is done in `exchanger.py`.
+
+## Oxygen - Combustion Chamber
+
+For the Combustion Chamber we wil using the two sub-reactions:
+
+<div align="center">
+
+$H_{2}O \rightarrow OH+H$
+
+$H_{2}\rightarrow 2H$
+
+</div>
+

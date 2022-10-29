@@ -198,6 +198,91 @@ def h2_tableT(h_hat):
 
     return T
 
+def oh_table_g(Temp):
+    '''
+    :param Temp: temperature in K
+    :return g_hat: Gibbs free energy in J/mol
+    '''
+    oh_table = pd.read_csv('./tables/OH_table.csv')
+
+    idx = (oh_table['T']-Temp).abs().idxmin()
+    T_cloest = oh_table['T'][idx]
+    g_hat_close = oh_table['g_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = oh_table['T'][idx+1]
+        g_hat_upper = oh_table['g_hat'][idx+1]
+        g_hat = g_hat_close + (g_hat_upper-g_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = oh_table['T'][idx-1]
+        g_hat_lower = oh_table['g_hat'][idx-1]
+        g_hat = g_hat_close + (g_hat_lower-g_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return g_hat
+
+def h_table_g(Temp):
+    '''
+    :param Temp: temperature in K
+    :return g_hat: Gibbs free energy in J/mol
+    '''
+    h_table = pd.read_csv('./tables/H_table.csv')
+
+    idx = (h_table['T']-Temp).abs().idxmin()
+    T_cloest = h_table['T'][idx]
+    g_hat_close = h_table['g_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h_table['T'][idx+1]
+        g_hat_upper = h_table['g_hat'][idx+1]
+        g_hat = g_hat_close + (g_hat_upper-g_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h_table['T'][idx-1]
+        g_hat_lower = h_table['g_hat'][idx-1]
+        g_hat = g_hat_close + (g_hat_lower-g_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return g_hat
+
+def h2o_table_g(Temp):
+    '''
+    :param Temp: temperature in K
+    :return g_hat: Gibbs free energy in J/mol
+    '''
+    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+
+    idx = (h2o_table['T']-Temp).abs().idxmin()
+    T_cloest = h2o_table['T'][idx]
+    g_hat_close = h2o_table['g_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h2o_table['T'][idx+1]
+        g_hat_upper = h2o_table['g_hat'][idx+1]
+        g_hat = g_hat_close + (g_hat_upper-g_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h2o_table['T'][idx-1]
+        g_hat_lower = h2o_table['g_hat'][idx-1]
+        g_hat = g_hat_close + (g_hat_lower-g_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return g_hat
+
+def h2_table_g(Temp):
+    '''
+    :param Temp: temperature in K
+    :return g_hat: Gibbs free energy in J/mol
+    '''
+    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+
+    idx = (h2_table['T']-Temp).abs().idxmin()
+    T_cloest = h2_table['T'][idx]
+    g_hat_close = h2_table['g_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h2_table['T'][idx+1]
+        g_hat_upper = h2_table['g_hat'][idx+1]
+        g_hat = g_hat_close + (g_hat_upper-g_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h2_table['T'][idx-1]
+        g_hat_lower = h2_table['g_hat'][idx-1]
+        g_hat = g_hat_close + (g_hat_lower-g_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return g_hat
+
+
 def MachSolve(gamma, r_A, guess):
     '''
     Solve for Mach number given gamma, r_A, and guess

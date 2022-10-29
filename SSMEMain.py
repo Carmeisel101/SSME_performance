@@ -17,3 +17,6 @@ if __name__ == '__main__':
     print('Temperature of the first enthalpy exchanger = ', FEE_T, 'K')
     print('Total enthalpy change in the first enthalpy exchanger = ', FEE_del_h_total, 'J')
 
+
+    OCC(FEE_T)
+    #4529.929
