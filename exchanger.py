@@ -47,11 +47,11 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
 
     return T, del_h_total
 
-def OCC(FEE_T):
+def OCC(FEE_T, p_starting, FO_ratio):
     '''
     This is a function that returns the calculations of the oxygen combustion chamber
-    :return T the temperature of the oxygen cooling chamber
-    :return del_h_total the total enthalpy change in the oxygen cooling chamber
+    :param FEE_T: temperature of the first enthalpy exchanger in K
+    :param p_starting: starting pressure in Pa
     '''
 
     # The chemical equation is H2O -> H + OH
@@ -72,12 +72,12 @@ def OCC(FEE_T):
     molfrac_h_total = molfrac_h_prod - molfrac_h_react
     molfrac_oh_total = molfrac_oh_prod - molfrac_oh_react
     sigma_nu = molfrac_h2o_total + molfrac_h_total + molfrac_oh_total
-    print('sigma_nu = ', sigma_nu)
+    # print('sigma_nu = ', sigma_nu)
 
     molfrac_h2_total = molfrac_h2_prod - molfrac_h2_react
     molfrac_2h_total = molfrac_2h_prod - molfrac_2h_react
     sigma_nu = molfrac_h2_total + molfrac_2h_total
-    print('sigma_nu = ', sigma_nu)
+    # print('sigma_nu = ', sigma_nu)
 
     # Gibbs free energy of formation
     g_f_h2o = h2o_table_g(FEE_T)
@@ -85,11 +85,23 @@ def OCC(FEE_T):
     g_f_oh = oh_table_g(FEE_T)
     g_f_h2 = h2_table_g(FEE_T)
 
-    print('g_f_h2o = ', g_f_h2o)
-    print('g_f_h = ', g_f_h)
-    print('g_f_oh = ', g_f_oh)
-    print('g_f_h2 = ', g_f_h2)
+    # Gibbs free energy of reaction
+    g_r_h2 = 2*(g_f_h - g_f_h2)
+    g_r_h2o = g_f_h + g_f_h2o - g_f_oh
 
+    k_h2 = ((p_starting/101325)**-1)*np.exp(-g_r_h2/(8.314*FEE_T))
+    k_h2o = ((p_starting/101325)**-1)*np.exp(-g_r_h2o/(8.314*FEE_T))
+
+    print('k_h2_2h = ', k_h2)
+    print('k_h2o_h_oh = ', k_h2o)
+
+    mass_fuel = 2.02 #H2
+    mass_oxider = mass_fuel/FO_ratio
+    l = mass_oxider/ (2*15.99)
+    print('l = ', l)
+
+    N_h2o = 2*l
+    print('N_h2o = ', N_h2o)
 
 
 
