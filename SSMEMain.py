@@ -12,11 +12,16 @@ if __name__ == '__main__':
     phi = (FuelOxidizer_ratio* mol_O2 / mol_H2)/2
     Hydr_inject_temp = 850 #K
     Ox_inject_temp = 530   #K
-    FEE_T, FEE_del_h_total = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
+    FEE_T, FEE_del_h_total, del_h2_hat, b_hat_table = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
+    print('phi = ', phi)
 
     print('Temperature of the first enthalpy exchanger = ', FEE_T, 'K')
     print('Total enthalpy change in the first enthalpy exchanger = ', FEE_del_h_total, 'J')
 
 
     OCC(FEE_T, p_starting, FuelOxidizer_ratio)
-    #4529.929
+
+    print('Flourine Problem')
+    b_hat_table, FEE_T_flourine = FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp)
+
+    print('Temperature of the first enthalpy exchanger (Flourine) = ', FEE_T_flourine, 'K')

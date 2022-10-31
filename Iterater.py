@@ -80,14 +80,14 @@ def hf_tableH(Temp):
 
     idx = (hf_table['T']-Temp).abs().idxmin()
     T_cloest = hf_table['T'][idx]
-    h_hat_close = hf_table['H*-H*_298'][idx]
+    h_hat_close = hf_table['h_hat'][idx]
     if Temp > T_cloest:
         T_upper = hf_table['T'][idx+1]
-        h_hat_upper = hf_table['H*-H*_298'][idx+1]
+        h_hat_upper = hf_table['h_hat'][idx+1]
         h_hat = h_hat_close + (h_hat_upper-h_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
     else:
         T_lower = hf_table['T'][idx-1]
-        h_hat_lower = hf_table['H*-H*_298'][idx-1]
+        h_hat_lower = hf_table['h_hat'][idx-1]
         h_hat = h_hat_close + (h_hat_lower-h_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
     h_hat = h_hat*4184
 
@@ -197,6 +197,28 @@ def h2_tableT(h_hat):
         T = T_close + (T_lower-T_close)/(h_hat_lower-h_hat_cloest)*(h_hat-h_hat_cloest)
 
     return T
+
+def hf_tableT(h_hat):
+    '''
+    :param h_hat: enthalpy in J/mol also known as heat of formation
+    :return Temp: temperature in K
+    '''
+    f2_table = pd.read_csv('./tables/HydrogenFluoride_HF_table.csv')
+    h_hat = h_hat/4184
+    idx = (f2_table['H*-H*_298']-h_hat).abs().idxmin()
+    h_hat_cloest = f2_table['H*-H*_298'][idx]
+    T_close = f2_table['T'][idx]
+    if h_hat > h_hat_cloest:
+        h_hat_upper = f2_table['H*-H*_298'][idx+1]
+        T_upper = f2_table['T'][idx+1]
+        T = T_close + (T_upper-T_close)/(h_hat_upper-h_hat_cloest)*(h_hat-h_hat_cloest)
+    else:
+        h_hat_lower = f2_table['H*-H*_298'][idx-1]
+        T_lower = f2_table['T'][idx-1]
+        T = T_close + (T_lower-T_close)/(h_hat_lower-h_hat_cloest)*(h_hat-h_hat_cloest)
+
+    return T
+
 
 def oh_table_g(Temp):
     '''

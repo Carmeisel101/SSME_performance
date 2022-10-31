@@ -11,6 +11,8 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     :param phi: equivalence ratio
     :return T the temperature of the first enthalpy exchanger
     :return del_h_total the total enthalpy change in the first enthalpy exchanger
+    :return b_hat_table the table of b_hat values
+    :return del_h2_hat the enthalpy change of H2
     '''
 
 
@@ -45,7 +47,7 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
 
     T = (T_h2o + T_h2)/2
 
-    return T, del_h_total
+    return T, del_h_total, del_h2_hat, b_hat_table
 
 def OCC(FEE_T, p_starting, FO_ratio):
     '''
@@ -103,6 +105,42 @@ def OCC(FEE_T, p_starting, FO_ratio):
     N_h2o = 2*l
     print('N_h2o = ', N_h2o)
 
+def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
+    '''
+    This is a function that returns the calculations of the fuel enthalpy exchanger - flourine
+    :param phi the equivalence ratio
+    :param p_starting combustion pressure in Pa
+    :param del_h2_hat heat of formation of H2 from FEE - Oxygen
+    :param b_hat_table Van der Waals table of constants
+    :param Ox_inject_temp: Oxidizer injection temperature in K
+    :return T the temperature of the FEE in K
+    :return b_hat_table the Van der Waals table of constants - edited
+    '''
 
+    b_hat_table.append({'substance': 'F2', 'b_hat': 0.02896}, ignore_index = True)
+    b_hat_table.append({'substance': 'HF', 'b_hat': 0.0739}, ignore_index = True)
+
+    b_hat_f2 = b_hat_table['b_hat'][3]
+    F2_inject_temp = Ox_inject_temp
+
+    del_f2_hat = f2_tableH(F2_inject_temp) + b_hat_f2*(p_starting - 101325)/1000
+    del_hf_hat = abs(hf_tableH(298))
+    del_h_total = phi*del_h2_hat + del_f2_hat
+    del_h_total = del_h_total + del_hf_hat
+
+
+    r = phi - 1
+    q = 1
+
+    r_perc = r/(r+q)
+    q_perc = 1-r_perc
+
+    T_h2 = h2_tableT(del_h_total)
+    T_hf = hf_tableT(q_perc*del_h_total)
+
+    T = (T_hf + T_h2) / 2
+
+
+    return b_hat_table, T
 
 
