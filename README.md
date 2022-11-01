@@ -80,7 +80,7 @@ For $H_{2}\rightarrow 2H$
 
 <div align="center">
 
-$\Delta G_{H_{2}} = 2(\bar{g}_{h} -\bar{g}_{h_{2}})$
+$\Delta G_{H_{2}} = 2(\bar{g_{H}} -\bar{g_{H_{2}}})$
 
 </div>
 
@@ -88,7 +88,7 @@ For $H_{2}O \rightarrow OH+H$
 
 <div align="center">
 
-$\Delta G_{H_{2}O} = \bar{g}_{H} + \bar{g}_{OH} - \bar{g}_{H_{2}O}$
+$\Delta G_{H_{2}O} = \bar{g_{H}} + \bar{g_{OH}} - \bar{g_{H_{2}O}}$
 
 </div>
 
