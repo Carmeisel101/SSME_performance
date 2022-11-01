@@ -80,7 +80,7 @@ For $H_{2}\rightarrow 2H$
 
 <div align="center">
 
-$\Delta G_{H_{2}} = 2(\bar{g}_{fh} -\bar{g}_{fh_{2}})$
+$\Delta G_{H_{2}} = 2(\bar{g}_{h} -\bar{g}_{h_{2}})$
 
 </div>
 
@@ -88,7 +88,7 @@ For $H_{2}O \rightarrow OH+H$
 
 <div align="center">
 
-$\Delta G_{H_{2}O} = \bar{g}_{fh} + \bar{g}_{foh} - \bar{g}_{fh_{2}o}$
+$\Delta G_{H_{2}O} = \bar{g}_{H} + \bar{g}_{OH} - \bar{g}_{H_{2}O}$
 
 </div>
 
@@ -211,10 +211,11 @@ We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
 
 | Species | $N_{(i)}$ | $X_{(i)}$ | $m_{(i)}$ | $Y_{(i)}$ | $\hat{c_{p}}_{(i)}$ | $c_{p_{(i)}}$ | $Y_{(i)}c_{p}$ |
 |---------|-------|-------|---------------|-------|-------|---------------|-------|
-| $H_{2}O$ | $N_{H_{2}O}$ | $X_{H_{2}O} = N_{H_{2}O}$ | $\hat{m}_{H_{2}O} N_{H_{2}O}$ | $\frac{\hat{m}_{H_{2}O}}{m_{(i)}}$ | $\hat{c_{p}}_{H_{2}O} (T_{c})$ | $\frac{\hat{c_{p}}_{H_{2}O}}{\hat{m}_{H_{2}O}}$ | $Y_{H_{2}O}c_{p}$ |
-| $H_{2}$ | $N_{H_{2}}$ | $X_{H_{2}} = N_{H_{2}}$ | $\hat{m}_{H_{2}} N_{H_{2}}$ | $\frac{\hat{m}_{H_{2}}}{m_{(i)}}$ | $\hat{c_{p}}_{H_{2}} (T_{c})$ | $\frac{\hat{c_{p}}_{H_{2}}}{\hat{m}_{H_{2}}}$ | $Y_{H_{2}}c_{p}$ |
-| $H$ | $N_{H}$ | $X_{H} = N_{H}$ | $\hat{m}_{H} N_{H}$ | $\frac{\hat{m}_{H}}{m_{(i)}}$ | $\hat{c_{p}}_{H} (T_{c})$ | $\frac{\hat{c_{p}}_{H}}{\hat{m}_{H}}$ | $Y_{H}c_{p}$ |
-| $OH$ | $N_{OH}$ | $X_{OH} = N_{OH}$ | $\hat{m}_{OH} N_{OH}$ | $\frac{\hat{m}_{OH}}{m_{(i)}}$ | $\hat{c_{p}}_{OH} (T_{c})$ | $\frac{\hat{c_{p}}_{OH}}{\hat{m}_{OH}}$ | $Y_{OH}c_{p}$ |
+| $H_{2}O$ | $N_{H_{2}O}$ | $X_{H_{2}O} = N_{H_{2}O}$ | $\hat{m} N_{H_{2}O}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}O}c_{p}$ |
+| $H_{2}$ | $N_{H_{2}}$ | $X_{H_{2}} = N_{H_{2}}$ | $\hat{m} N_{H_{2}}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}}c_{p}$ |
+| $H$ | $N_{H}$ | $X_{H} = N_{H}$ | $\hat{m} N_{H}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H}c_{p}$ |
+| $OH$ | $N_{OH}$ | $X_{OH} = N_{OH}$ | $\hat{m} N_{OH}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{OH}c_{p}$ |
+
 
 </div>
 
