@@ -1,5 +1,7 @@
 from Iterater import *
 import pandas as pd
+import numpy as np
+from sympy import Eq, solve, var
 
 
 def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
@@ -54,6 +56,12 @@ def OCC(FEE_T, p_starting, FO_ratio):
     This is a function that returns the calculations of the oxygen combustion chamber
     :param FEE_T: temperature of the first enthalpy exchanger in K
     :param p_starting: starting pressure in Pa
+    :param FO_ratio: fuel to oxidizer ratio
+    :return gamma: the ratio of specific heats
+    :return R: the gas constant
+    :return cp_total: the total specific heat capacity
+    :return cv : the specific heat capacity at constant volume
+    :return LawOfMassAction_df: the dataframe of the law of mass action
     '''
 
     # The chemical equation is H2O -> H + OH
@@ -94,16 +102,77 @@ def OCC(FEE_T, p_starting, FO_ratio):
     k_h2 = ((p_starting/101325)**-1)*np.exp(-g_r_h2/(8.314*FEE_T))
     k_h2o = ((p_starting/101325)**-1)*np.exp(-g_r_h2o/(8.314*FEE_T))
 
-    print('k_h2_2h = ', k_h2)
-    print('k_h2o_h_oh = ', k_h2o)
+
+    # k_h2o = 0.007149
+    # k_h2 = 0.011874839
 
     mass_fuel = 2.02 #H2
     mass_oxider = mass_fuel/FO_ratio
     l = mass_oxider/ (2*15.99)
-    print('l = ', l)
 
-    N_h2o = 2*l
-    print('N_h2o = ', N_h2o)
+    N_h = var('N_h')
+    N_oh = var('N_oh')
+    N_h2 = var('N_h2')
+    N_h2o = var('N_h2o')
+
+
+    # solve the system of equations - Law of mass action
+    sol = solve([Eq(N_h2o, 2*l), Eq(N_h2o+N_h2, 1), Eq((N_h*N_oh)/((N_h2+N_h2o)*N_h2o), k_h2o),
+                 Eq((N_h**2)/((N_h2+N_h2o)*N_h2), k_h2)], [N_h, N_oh, N_h2, N_h2o])
+    # split sol into two separate lists
+    sol1 = sol[0]
+    sol2 = sol[1]
+
+    # if all the solutions are real and positive then assign mols_sol to the solution
+    if all(i > 0 for i in sol1) and all(i > 0 for i in sol2):
+        mols_sol = sol1
+    else:
+        mols_sol = sol2
+
+    # print('mols_sol = ', mols_sol)
+    N_h = mols_sol[0]
+    N_oh = mols_sol[1]
+    N_h2 = mols_sol[2]
+    N_h2o = mols_sol[3]
+    N_total = N_h + N_oh + N_h2 + N_h2o
+
+    molar_mass_h2o = 18.01528
+    molar_mass_h = 1.00794
+    molar_mass_oh = 17.00734
+    molar_mass_h2 = 2.01588
+    molar_mass_total = molar_mass_h2o + molar_mass_h + molar_mass_oh + molar_mass_h2
+
+    LawOfMassAction_df = pd.DataFrame({'substance': ['N_H2O', 'N_H2', 'N_H', 'N_OH', 'Total'],
+                                       'mols': [N_h2o, N_h2, N_h, N_oh, N_total]})
+    LawOfMassAction_df['X_(i)'] = LawOfMassAction_df['mols']
+    LawOfMassAction_df['m_hat_(i)'] = pd.Series([molar_mass_h2o, molar_mass_h2, molar_mass_h, molar_mass_oh, molar_mass_total])\
+                                      * LawOfMassAction_df['X_(i)']
+
+    # sum m_hat_(i)[i=0 to i=3]
+    m_hat_total = sum(LawOfMassAction_df['m_hat_(i)'])-LawOfMassAction_df['m_hat_(i)'][4]
+    LawOfMassAction_df['m_hat_(i)'][4] = m_hat_total
+    LawOfMassAction_df['Y_(i)'] = LawOfMassAction_df['m_hat_(i)'] / m_hat_total
+
+    h2_cp = h2_table_cp(FEE_T)
+    h2o_cp = h2o_table_cp(FEE_T)
+    h_cp = h_table_cp(FEE_T)
+    oh_cp = oh_table_cp(FEE_T)
+
+    cp_hats = pd.Series([h2o_cp, h2_cp, h_cp, oh_cp])
+    cps = cp_hats / pd.Series([molar_mass_h2o, molar_mass_h2, molar_mass_h, molar_mass_oh])
+    cp_df = pd.DataFrame({'cp_hat': cp_hats, 'cp': cps})
+    cp_df['Y_(i)*cp_(i)'] = cp_df['cp'] * LawOfMassAction_df['Y_(i)'][0:4]
+
+    cp_total = sum(cp_df['Y_(i)*cp_(i)'])
+
+    LawOfMassAction_df = pd.concat([LawOfMassAction_df, cp_df], axis=1)
+
+    R = 8.314/m_hat_total
+    cv = cp_total - R
+
+    gamma = cp_total/cv
+
+    return gamma, R, cp_total, cv, LawOfMassAction_df
 
 def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
     '''

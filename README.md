@@ -9,7 +9,7 @@ This is a simple model of the Space Shuttle Main Engine (SSME) performance. It i
 |--------------------------| ----|
 |Fuel|  Hydrogen |
 |Oxidizer| $O_{2}$ |
-|Fuel/Oxidizer Ratio | 0.166 |
+|Fuel/Oxidizer Ratio $\phi$ | 0.166 |
 | Hydrogen Injection Temperature |  850 K |
 | Oxygen Injection Temperature |  530 K |
 | Combustion Chamber Pressure |  204 atm |
@@ -60,7 +60,7 @@ $\Delta \hat{h_{r}} = \Phi \Delta \hat{h_{H_{2}}} + 2( \Delta \hat{h_{H_{2}O}} )
 
 </div>
 
-We are to then interpolate this value from the given turn tables to get the actual value of the combustion temperature for Oxygen First Enthalpy Exchanger. This is done in `exchanger.py`.
+We are to then interpolate this value from the given turn tables to get the actual value of the combustion temperature for Oxygen First Enthalpy Exchanger. This is done in `exchanger.py`. At the end of this process we have the combustion temperature for the Oxygen First Enthalpy Exchanger, $T_{c}$.
 
 ## Oxygen - Combustion Chamber
 
@@ -74,3 +74,172 @@ $H_{2}\rightarrow 2H$
 
 </div>
 
+From here we are to calculate the Gibbs Free Energy of each species.
+
+For $H_{2}\rightarrow 2H$
+
+<div align="center">
+
+$\Delta G_{H_{2}} = 2(\bar{g}_{fh} -\bar{g}_{fh_{2}})$
+
+</div>
+
+For $H_{2}O \rightarrow OH+H$
+
+<div align="center">
+
+$\Delta G_{H_{2}O} = \bar{g}_{fh} + \bar{g}_{foh} - \bar{g}_{fh_{2}o}$
+
+</div>
+
+Where $\bar{g}_{fh}$ is the Gibbs Free Energy of formation of $H_{2}$, $\bar{g}_{foh}$ is the Gibbs Free Energy of formation of $OH$, and $\bar{g}_{fh_{2}o}$ is the Gibbs Free Energy of formation of $H_{2}O$. These values are read from the `Iterater.py` file.
+
+### Law of Mass Action
+Looking at For $H_{2}O \rightarrow OH+H$:
+
+<div align="center">
+
+| Species | $\nu_{(i)} '$ | $\nu_{(i)} "$ | $\nu_{(i)} " - \nu_{(i)} '$ |
+|---------|-------|-------|---------------|
+| $H_{2}O$ | 1 | 0 | -1 |
+| $OH$ | 0 | 1 | 1 |
+| $H$ | 0 | 1 | 1 |
+
+</div>
+
+We know that:
+
+<div align="center">
+
+$K_{n} = \prod_{n=1}^{N_{s}} X_{(n)}^{(\nu_{(i)} " - \nu_{(i)} ')} = (\frac{p}{p^{ * }})^{- \sigma_{v}} K_{p}$
+
+</div>
+
+Where; 
+
+<div align="center">
+
+$\sigma_{v} = \sum_{n=1}^{N_{s}} \nu_{(i)} " - \nu_{(i)} '$
+
+$K_{p} = e^{- \frac{\Delta G}{\hat{R}T}}$
+
+$\Delta G = \sum_{n=1}^{N_{s}} (\nu_{(i)} " -\nu_{(i)}') \bar{g}_{f(n)}$
+
+</div>
+
+We can then solve for $K_{n}$:
+
+<div align="center">
+
+$K_{H_{2}O \rightarrow OH+H} = (\frac{204 atm}{1 atm})e^{- \frac{\Delta G_{H_{2}O}}{\hat{R}T_{c}}}$
+
+$K_{H_{2}\rightarrow 2H} = (\frac{204 atm}{1 atm})e^{- \frac{\Delta G_{H_{2}}}{\hat{R}T_{c}}}$
+
+</div>
+
+Here we know that the fuel is $H_{2}$ therefore the mass of the fuel is 2.02 $\frac{g}{mol}$ and the mass of the oxidizer is $m_{oxidizer} =\frac{2.02}{\phi}$. And $l = \frac{m_{oxidizer}}{2 m_{O_2}}$. Once we have $l$ we re-visit the Chemistry Problem by solving the Atom Balance:
+
+<div align="center">
+
+$H_{2} +l O_{2} \rightarrow N_{H_{2}O}H_{2}O +N_{H_{2}}H_{2} + N_{H}H +N_{OH}OH$
+
+$H_{2}: 2 = 2N_{H_{2}O} + 2N_{H_{2}} + N_{H} + N_{OH}$
+
+$O_{2}: 2l = N_{H_{2}O} + N_{OH}$
+
+</div>
+
+Where $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$ are the number of moles of each species. We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
+
+<div align="center">
+
+$1 = N_{H_{2}O} + N_{H_{2}}$
+
+$0.760592 = N_{H_{2}O}$
+
+</div>
+
+Resulting in us having 4 unknown values with only 2 equations. This a signal to us prompting the Law of Mass Action. When solving for the Moler Fraction of each species we get:
+
+<div align="center">
+
+$X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}} = \frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
+
+$X_{H} = \frac{N_{H}}{N_{Total}} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
+
+$X_{OH} = \frac{N_{OH}}{N_{Total}} = \frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
+
+$K_{H_{2}O \rightarrow OH+H} = \frac{\frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}}} \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}}}{\frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}}}} = \frac{N_{H}N_{OH}}{(N_{H_{2}O} + N_{H_{2}})N_{H_{2}O}}$
+
+</div>
+
+Similarly for the $H_{2}\rightarrow 2H$ Reaction:
+
+<div align="center">
+
+
+| Species | $\nu_{(i)} '$ | $\nu_{(i)} "$ | $\nu_{(i)} " - \nu_{(i)} '$ |
+|---------|-------|-------|---------------|
+| $H_{2}$ | 1 | 0 | -1 |
+| $H$ | 0 | 2 | 2 |
+
+$X_{H_{2}} = \frac{N_{H_{2}}}{N_{Total}} = \frac{N_{H_{2}}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
+
+$X_{H} = \frac{N_{H}}{N_{Total}} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
+
+$K_{H_{2}\rightarrow 2H} = \frac{(\frac{N_{H}}{N_{H_{2}}+ N_{H_{2}O}})^{2}}{\frac{N_{H_{2}}}{N_{H_{2}}+ N_{H_{2}O}}} = \frac{N_{H}^{2}}{N_{H_{2}}(N_{H_{2}}+ N_{H_{2}O})}$
+
+</div>
+
+After this we know have to solve a system of coupled equations:
+
+<div align="center">
+
+$1 = N_{H_{2}O} + N_{H_{2}}$
+
+$0.760592 = N_{H_{2}O}$
+
+$K_{H_{2}O \rightarrow OH+H} = \frac{N_{H}N_{OH}}{(N_{H_{2}O} + N_{H_{2}})N_{H_{2}O}}$
+
+$K_{H_{2}\rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}}(N_{H_{2}}+ N_{H_{2}O})}$ 
+
+</div>
+
+We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
+
+<div align="center">
+
+| Species | $N_{(i)}$ | $X_{(i)}$ | $m_{(i)}$ | $Y_{(i)}$ | $\hat{c_{p}}_{(i)}$ | $c_{p_{(i)}}$ | $Y_{(i)}c_{p}$ |
+|---------|-------|-------|---------------|-------|-------|---------------|-------|
+| $H_{2}O$ | $N_{H_{2}O}$ | $X_{H_{2}O} = N_{H_{2}O}$ | $\hat{m}_{H_{2}O} N_{H_{2}O}$ | $\frac{\hat{m}_{H_{2}O}}{m_{(i)}}$ | $\hat{c_{p}}_{H_{2}O} (T_{c})$ | $\frac{\hat{c_{p}}_{H_{2}O}}{\hat{m}_{H_{2}O}}$ | $Y_{H_{2}O}c_{p}$ |
+| $H_{2}$ | $N_{H_{2}}$ | $X_{H_{2}} = N_{H_{2}}$ | $\hat{m}_{H_{2}} N_{H_{2}}$ | $\frac{\hat{m}_{H_{2}}}{m_{(i)}}$ | $\hat{c_{p}}_{H_{2}} (T_{c})$ | $\frac{\hat{c_{p}}_{H_{2}}}{\hat{m}_{H_{2}}}$ | $Y_{H_{2}}c_{p}$ |
+| $H$ | $N_{H}$ | $X_{H} = N_{H}$ | $\hat{m}_{H} N_{H}$ | $\frac{\hat{m}_{H}}{m_{(i)}}$ | $\hat{c_{p}}_{H} (T_{c})$ | $\frac{\hat{c_{p}}_{H}}{\hat{m}_{H}}$ | $Y_{H}c_{p}$ |
+| $OH$ | $N_{OH}$ | $X_{OH} = N_{OH}$ | $\hat{m}_{OH} N_{OH}$ | $\frac{\hat{m}_{OH}}{m_{(i)}}$ | $\hat{c_{p}}_{OH} (T_{c})$ | $\frac{\hat{c_{p}}_{OH}}{\hat{m}_{OH}}$ | $Y_{OH}c_{p}$ |
+
+</div>
+
+Now to calculate $c_{p}$ we sum the $Y_{(i)}c_{p}$ for each species:
+
+<div align="center">
+
+$c_{p} = \sum_{i} Y_{(i)}c_{p}$
+
+$m_{(total)} = \sum_{i} X_{(i)}m_{(i)}$
+
+</div>
+
+We perform this step to calculate the gas constant $R$:
+
+<div align="center">
+
+$R = \frac{\hat{R}}{m_{(total)}}$
+
+$c_{v} = c_{p} - R$
+
+</div>
+
+Resulting in use getting a gamma of:
+
+<div align="center">
+
+$\gamma = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{\sum_{i} X_{(i)}m_{(i)}}} = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{m_{(total)}}}=\frac{c_{p}}{c_{p} - R}  =\frac{c_{p}}{c_{v}}$

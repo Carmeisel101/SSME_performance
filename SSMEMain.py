@@ -19,7 +19,7 @@ if __name__ == '__main__':
     print('Total enthalpy change in the first enthalpy exchanger = ', FEE_del_h_total, 'J')
 
 
-    OCC(FEE_T, p_starting, FuelOxidizer_ratio)
+    gamma, R, cp_total, cv, LawOfMassAction_df = OCC(FEE_T, p_starting, FuelOxidizer_ratio)
 
     print('Flourine Problem')
     b_hat_table, FEE_T_flourine = FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp)

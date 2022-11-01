@@ -304,6 +304,89 @@ def h2_table_g(Temp):
 
     return g_hat
 
+def h2o_table_cp(Temp):
+    '''
+    :param Temp: temperature in K
+    :return cp_hat: heat capacity in J/mol-K
+    '''
+    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+
+    idx = (h2o_table['T']-Temp).abs().idxmin()
+    T_cloest = h2o_table['T'][idx]
+    cp_hat_close = h2o_table['cp_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h2o_table['T'][idx+1]
+        cp_hat_upper = h2o_table['cp_hat'][idx+1]
+        cp_hat = cp_hat_close + (cp_hat_upper-cp_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h2o_table['T'][idx-1]
+        cp_hat_lower = h2o_table['cp_hat'][idx-1]
+        cp_hat = cp_hat_close + (cp_hat_lower-cp_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return cp_hat
+
+def h2_table_cp(Temp):
+    '''
+    :param Temp: temperature in K
+    :return cp_hat: heat capacity in J/mol-K
+    '''
+    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+
+    idx = (h2_table['T']-Temp).abs().idxmin()
+    T_cloest = h2_table['T'][idx]
+    cp_hat_close = h2_table['cp_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h2_table['T'][idx+1]
+        cp_hat_upper = h2_table['cp_hat'][idx+1]
+        cp_hat = cp_hat_close + (cp_hat_upper-cp_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h2_table['T'][idx-1]
+        cp_hat_lower = h2_table['cp_hat'][idx-1]
+        cp_hat = cp_hat_close + (cp_hat_lower-cp_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return cp_hat
+
+def oh_table_cp(Temp):
+    '''
+    :param Temp: temperature in K
+    :return cp_hat: heat capacity in J/mol-K
+    '''
+    oh_table = pd.read_csv('./tables/OH_table.csv')
+
+    idx = (oh_table['T']-Temp).abs().idxmin()
+    T_cloest = oh_table['T'][idx]
+    cp_hat_close = oh_table['cp_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = oh_table['T'][idx+1]
+        cp_hat_upper = oh_table['cp_hat'][idx+1]
+        cp_hat = cp_hat_close + (cp_hat_upper-cp_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = oh_table['T'][idx-1]
+        cp_hat_lower = oh_table['cp_hat'][idx-1]
+        cp_hat = cp_hat_close + (cp_hat_lower-cp_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return cp_hat
+
+def h_table_cp(Temp):
+    '''
+    :param Temp: temperature in K
+    :return cp_hat: heat capacity in J/mol-K
+    '''
+    h_table = pd.read_csv('./tables/H_table.csv')
+
+    idx = (h_table['T']-Temp).abs().idxmin()
+    T_cloest = h_table['T'][idx]
+    cp_hat_close = h_table['cp_hat'][idx]
+    if Temp > T_cloest:
+        T_upper = h_table['T'][idx+1]
+        cp_hat_upper = h_table['cp_hat'][idx+1]
+        cp_hat = cp_hat_close + (cp_hat_upper-cp_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h_table['T'][idx-1]
+        cp_hat_lower = h_table['cp_hat'][idx-1]
+        cp_hat = cp_hat_close + (cp_hat_lower-cp_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return cp_hat
 
 def MachSolve(gamma, r_A, guess):
     '''
