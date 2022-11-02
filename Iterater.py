@@ -408,3 +408,5 @@ def MachSolve(gamma, r_A, guess):
     return sol
 
 
+# Me = MachSolve(1.237115, 77.5426, 5)
+# print('Me = ', Me)

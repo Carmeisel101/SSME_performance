@@ -244,3 +244,49 @@ Resulting in use getting a gamma of:
 <div align="center">
 
 $\gamma = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{\sum_{i} X_{(i)}m_{(i)}}} = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{m_{(total)}}}=\frac{c_{p}}{c_{p} - R}  =\frac{c_{p}}{c_{v}}$
+
+</div>
+
+## Oxygen Nozzle Performance
+
+Begin by defining our Area Ratio: $A_{r} = \frac{\pi (R_{e})^{2}}{\pi (R_{t})^{2}}$. From here we are to solve for the Mach number:
+
+<div align="center">
+
+$A_{r} = (\frac{\gamma +1}{2})^{-\frac{\gamma+1}{2(\gamma-1)}} \frac{1}{M_{e}} (1+ \frac{\gamma-1}{2} (M_{e})^{2})^{\frac{\gamma+1}{2(\gamma -1)}}$
+
+</div>
+
+We can for Mach number $M_{e}$ by making use of `scipy.optimize.fsolve`, which returns the roots of a non-linear function. After solving for $M_{e}$ we can then solve for the pressure, Temperature, and velocity:
+
+
+<div align="center">
+
+$T_{e} = T_{c} (1+ \frac{\gamma-1}{2} (M_{e})^{2})^{-1}$
+
+$p_{e} = p_{c} (1+ \frac{\gamma-1}{2} (M_{e})^{2})^{-\frac{\gamma}{\gamma-1}}$
+
+$v_{e} = M_{e} \sqrt{\gamma R_{sp} T_{e}}$
+
+</div>
+
+After Solving for these values we can then calculate the mass flow rate:
+
+
+<div align="center">
+
+$\dot{m} = \frac{A_{t} p}{\sqrt{T_{c}}} \sqrt{\frac{\gamma}{R_{sp}}} (\frac{2}{\gamma + 1})^{\frac{\gamma + 1}{2(\gamma -1)}}$
+
+</div>
+
+Then onec you have the mass flow rate you can calculate the thrust, specific impulse, and thrust coefficient:
+
+<div align="center">
+
+$Thrust = \dot{m} v_{e}+p_{e}A_{e} - pA_{t}$
+
+$I_{sp} = \frac{Thrust}{\dot{m} g_{0}}$
+
+$C_{T} = \frac{Thrust}{pA_{t}}$
+
+</div>

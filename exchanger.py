@@ -212,4 +212,37 @@ def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
 
     return b_hat_table, T
 
+def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting):
+    '''
+    This is a function that returns the performance of the oxidizer nozzle
+    :param ThroatRadius:
+    :param ExitRadius:
+    :param gamma:
+    :param FEE_T:
+    :return:
+    '''
 
+    Area_ratio = (ExitRadius/ThroatRadius)**2
+    # change np.float64 values to a float
+    gamma = float(gamma)
+    FEE_T = float(FEE_T)
+    R = float(R)
+    R = R*1000 # convert to J/kg-K
+
+    M_e = MachSolve(gamma, Area_ratio, 5.0)
+    print('M_e = ', M_e)
+    T_e = FEE_T*((1+((gamma-1)/2)*M_e**2)**(-1))
+    v_e = M_e * np.sqrt(gamma * R * T_e)
+    p_e = p_starting * (1 + ((gamma - 1) / 2) * M_e ** 2) ** (-gamma / (gamma - 1))
+    ExitRadius = ExitRadius/39.37 # convert to meters
+    ThroatRadius = ThroatRadius/39.37 # convert to
+
+
+    m_dot = (p_starting * np.pi * (ThroatRadius)**2) / (np.sqrt(FEE_T)) * \
+        np.sqrt(gamma/R)*((2/(gamma+1))**((gamma+1)/(2*(gamma-1))))
+
+    Thurst = m_dot * v_e + p_e * np.pi * ExitRadius**2 - p_starting * np.pi * ThroatRadius**2
+    c_T = Thurst / (p_starting * np.pi * ThroatRadius**2)
+    I_sp = Thurst/ (m_dot * 9.81)
+
+    return m_dot, v_e, p_e, Thurst, c_T, I_sp, T_e
