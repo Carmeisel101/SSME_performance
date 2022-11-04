@@ -39,3 +39,5 @@ if __name__ == '__main__':
     b_hat_table, FEE_T_flourine = FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp)
 
     print('Temperature of the first enthalpy exchanger (Flourine) = ', FEE_T_flourine, 'K')
+
+    FCC(FEE_T_flourine)

@@ -92,7 +92,7 @@ $\Delta G_{H_{2}O} = \bar{g_{H}} + \bar{g_{OH}} - \bar{g_{H_{2}O}}$
 
 </div>
 
-Where $\bar{g}_{fh}$ is the Gibbs Free Energy of formation of $H_{2}$, $\bar{g}_{foh}$ is the Gibbs Free Energy of formation of $OH$, and $\bar{g}_{fh_{2}o}$ is the Gibbs Free Energy of formation of $H_{2}O$. These values are read from the `Iterater.py` file.
+Where $\bar{g_{fh}}$ is the Gibbs Free Energy of formation of $H_{2}$, $\bar{g_{foh}}$ is the Gibbs Free Energy of formation of OH, and $\bar{g_{fh_{2}o}}_{fh_{2}o}$ is the Gibbs Free Energy of formation of $H_{2}O$. These values are read from the `Iterater.py` file.
 
 ### Law of Mass Action
 Looking at For $H_{2}O \rightarrow OH+H$:

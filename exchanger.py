@@ -246,3 +246,42 @@ def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting):
     I_sp = Thurst/ (m_dot * 9.81)
 
     return m_dot, v_e, p_e, Thurst, c_T, I_sp, T_e
+
+def FCC(FEE_F):
+    '''
+    This is a function that returns the performance of the flourine combustion chamber
+    :return:
+    '''
+
+
+    # The chemical equation is H2 +F2-> 2HF
+    molfrac_h2_react = 1
+    molfrac_f2_react = 1
+    molfrac_hf_react = 0
+    molfrac_h2_prod = 0
+    molfrac_f2_prod = 0
+    molfrac_hf_prod = 2
+
+
+    molfrac_h2_total = molfrac_h2_react - molfrac_h2_prod
+    molfrac_f2_total = molfrac_f2_react - molfrac_f2_prod
+    molfrac_hf_total = molfrac_hf_react - molfrac_hf_prod
+    sigma_nu = molfrac_hf_total + molfrac_h2_total + molfrac_f2_total
+    # print('sigma_nu = ', sigma_nu)
+
+    # Gibbs free energy of formation of H2, F2, and HF
+    del_h_h2 = h2_tableH(FEE_F)
+    del_h_f2 = f2_tableH(FEE_F)
+    del_h_hf = hf_tableH(FEE_F)
+
+    s_h2 = h2_tableS(FEE_F)
+    s_f2 = f2_tableS(FEE_F)
+    s_hf = hf_tableS(FEE_F)
+
+    # Gibbs
+    del_g_h2 = del_h_h2 - FEE_F*s_h2
+    del_g_f2 = del_h_f2 - FEE_F*s_f2
+    del_g_hf = del_h_hf - FEE_F*s_hf
+
+    del_g_total = -del_g_f2 - del_g_h2 + del_g_hf
+    print('del_g_total = ', del_g_total)

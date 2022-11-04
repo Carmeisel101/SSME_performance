@@ -407,6 +407,67 @@ def MachSolve(gamma, r_A, guess):
 
     return sol
 
+def h2_tableS(Temp):
+    '''
+    :param Temp: temperature in K
+    :return S_hat: entropy in J/mol-K
+    '''
+    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
 
+    idx = (h2_table['T']-Temp).abs().idxmin()
+    T_cloest = h2_table['T'][idx]
+    S_hat_close = h2_table['S'][idx]
+    if Temp > T_cloest:
+        T_upper = h2_table['T'][idx+1]
+        S_hat_upper = h2_table['S'][idx+1]
+        S_hat = S_hat_close + (S_hat_upper-S_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = h2_table['T'][idx-1]
+        S_hat_lower = h2_table['S'][idx-1]
+        S_hat = S_hat_close + (S_hat_lower-S_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return S_hat
+
+def hf_tableS(Temp):
+    '''
+    :param Temp: temperature in K
+    :return S_hat: entropy in J/mol-K
+    '''
+    hf_table = pd.read_csv('./tables/HydrogenFluoride_HF_table.csv')
+
+    idx = (hf_table['T']-Temp).abs().idxmin()
+    T_cloest = hf_table['T'][idx]
+    S_hat_close = hf_table['S'][idx]
+    if Temp > T_cloest:
+        T_upper = hf_table['T'][idx+1]
+        S_hat_upper = hf_table['S'][idx+1]
+        S_hat = S_hat_close + (S_hat_upper-S_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = hf_table['T'][idx-1]
+        S_hat_lower = hf_table['S'][idx-1]
+        S_hat = S_hat_close + (S_hat_lower-S_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return S_hat
+
+def f2_tableS(Temp):
+    '''
+    :param Temp: temperature in K
+    :return S_hat: entropy in J/mol-K
+    '''
+    f2_table = pd.read_csv('./tables/Fluorine_F2_table.csv')
+
+    idx = (f2_table['T']-Temp).abs().idxmin()
+    T_cloest = f2_table['T'][idx]
+    S_hat_close = f2_table['S'][idx]
+    if Temp > T_cloest:
+        T_upper = f2_table['T'][idx+1]
+        S_hat_upper = f2_table['S'][idx+1]
+        S_hat = S_hat_close + (S_hat_upper-S_hat_close)/(T_upper-T_cloest)*(Temp-T_cloest)
+    else:
+        T_lower = f2_table['T'][idx-1]
+        S_hat_lower = f2_table['S'][idx-1]
+        S_hat = S_hat_close + (S_hat_lower-S_hat_close)/(T_lower-T_cloest)*(Temp-T_cloest)
+
+    return S_hat
 # Me = MachSolve(1.237115, 77.5426, 5)
 # print('Me = ', Me)

@@ -1,0 +1,539 @@
+\documentclass[12pt, Times New Roman]{article}
+\usepackage{amsmath}
+\usepackage{babel}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+
+
+\title{Space Shuttle Main Engine}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+
+\begin{document}
+
+    \maketitle
+    
+    \tableofcontents
+
+    \section{Introduction}
+    The Space Shuttle Main Engine (SSME) is a liquid-fueled rocket engine used to power the Space Shuttle Orbiter. 
+    This report will discuss the design and methodologies of the SSME code, as well as the results of the code.
+    For this project, we were given the parameters below:
+    \begin{center}
+        \begin{tabular}{|c|c|}
+            \hline
+            Combustion Chamber Data & \\
+            \hline
+            Fuel & Hydrogen \\
+            \hline
+            Oxidizer & $O_{2}$ \\
+            \hline
+            Fuel/Oxidizer Ratio & 0.166 \\
+            \hline
+            Hydrogen Injection Temperature & 850 K \\
+            \hline
+            Oxidizer Injection Temperature & 530 K \\
+            \hline
+            Chamber Pressure & 204 atm \\
+            \hline
+        \end{tabular}
+
+        \vspace*{6pt}
+
+        \begin{tabular}{|c|c|}
+            \hline
+            $R_{t}$ & 5.15 inch \\
+            \hline
+            $R_{e}$ & 45.35 \\
+            \hline
+            $\theta_{p}$ & 32 degree \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    \section{Oxygen}
+
+    \subsection{First Enthalpy Exchanger}
+    We begin with computing the equivalence ratio $\phi$  for the oxygen first enthalpy exchanger. 
+    The equivalence ratio is defined as the ratio of the mass of fuel to the mass of oxidizer. 
+    The mass of fuel is the mass of hydrogen, and the mass of oxidizer is the mass of oxygen. 
+    The mass of hydrogen is $\phi \frac{mol_{O_{2}}}{mol_{H_{2}}} = \Phi$.
+
+
+    \vspace*{6pt}
+
+    From here we are to calculate the stndard heat of formation by:
+    
+    \begin{equation}
+        \Delta \hat{h}_{H_{2}} = \hat{h}_{H_{2}}(850) \hat{R}T^{2}\int^{pi}_{pf} \frac{1}{p} \frac{-\hat{b}_{H_{2}}p}{\hat{R}T^{2}} dp
+    \end{equation}
+
+    \vspace*{6pt}
+
+    \begin{equation}
+        \Delta \hat{h}_{O_{2}} = \hat{h}_{O_{2}}(530) + \hat{R}T^{2}\int^{pi}_{pf} \frac{1}{p} \frac{-\hat{b}_{O_{2}}p}{\hat{R}T^{2}} dp
+    \end{equation}
+
+    \begin{center}
+        \begin{tabular}{|c|c|}
+            \hline
+            Species & $\hat{b}$ \\
+            \hline
+            $H_{2}$ & 0.0266 \\
+            \hline
+            $O_{2}$ & 0.0318 \\
+            \hline
+            $H_{2}O$ & 0.03049 \\
+            \hline
+            $N_{2}$ & 0.0391 \\
+            \hline
+            $F_{2}$ & 0.02896 \\
+            \hline
+            $HF$ & 0.0739 \\
+            \hline
+        \end{tabular}
+    \end{center}
+    
+    Where $\hat{b}$ is read from a table developed in \verb|exchanger.py| file. $\Delta \hat{h}_{i}$ is calculated from both 
+    hydrogen and oxygen. Once we calculate $\Delta \hat{h}_{i}$ for each, we can calculate the enthalpy of the mixture.
+
+    \begin{equation}
+        \Delta \hat{h}_{mix} = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}}
+    \end{equation}
+    
+    We can then apply this to our chemical equation.
+
+    \begin{equation}
+        O_{2} + \Phi H_{2} \rightarrow (2-\Phi)H_{2} +2H_{2}O
+    \end{equation}
+
+    Note: notice the $(2-\Phi)$ in the equation above. This is because we calculated the enthalpy of formation for hydrogen and not 
+    hydrogen gas $H_{2}$.
+    
+    \vspace*{6pt}
+
+    From here we can sum the molar enthalpies of formation to get the first estimate of the first reaction enthalpy
+
+    \begin{equation}
+        \Delta \hat{h}_{r} = \Phi \Delta \hat{h}_{H_{2}} + 2(\Delta \hat{h}_{H_{2}O})
+    \end{equation}
+
+    From here we go into our Temperature finding Algorithm. We are given the following parameters:
+
+    \begin{equation}
+        r = \Phi - 1
+    \end{equation}
+
+    \begin{equation}
+        q = 1 
+    \end{equation}
+
+    \begin{equation}
+        r_{percent} = \frac{r}{r+q}
+    \end{equation}
+
+    \begin{equation}
+        q_{percent} = \frac{q}{r+q}
+    \end{equation}
+
+    From here we use the values of (Eq. 6) - (Eq. 9) to calculate the temperature of the first enthalpy exchanger.
+
+    \begin{equation}
+        T_{H_{2}} = \verb|h2_tableT|(\Delta \hat{h}_{r})
+    \end{equation}
+
+    \begin{equation}
+        T_{H_{2}O} = \verb|ho2_tableT|(q_{percent} \Delta \hat{h}_{r})
+    \end{equation}
+
+    Once we have returned the values of Temperature, we then average the two values to get the final temperature of the first enthalpy exchanger.
+
+    \begin{equation}
+        T_{C} = \frac{T_{H_{2}} + T_{H_{2}O}}{2}
+    \end{equation}
+
+    \vspace*{6pt}
+
+    \subsection{Combustion Chamber}
+    For the Combustion Chamber, we have the two equations below:
+
+    \begin{equation}
+        H_{2}O \rightarrow OH + H 
+    \end{equation}
+
+    \begin{equation}
+        H_{2} \rightarrow 2H
+    \end{equation}
+
+    The Gibbs Free Energy for each species is given by:
+    
+    \begin{equation}
+        \hat{g}_{H_{2}O} = \verb|h2o_table_g|(T_{C})
+    \end{equation}
+
+    \begin{equation}
+        \hat{g}_{H_{2}} = \verb|h2_table_g|(T_{C})
+    \end{equation}
+
+    \begin{equation}
+        \hat{g}_{OH} = \verb|oh_table_g|(T_{C})
+    \end{equation}
+
+    \begin{equation}
+        \hat{g}_{H} = \verb|h_table_g|(T_{C})
+    \end{equation}
+
+    \vspace*{6pt}
+
+    We can then calculate the Gibbs Free Energy of the reaction by:
+
+    \begin{equation}
+        \Delta \hat{g}_{r} = 2(\hat{g}_{H} - \hat{g}_{H_{2}}) 
+    \end{equation}
+
+    \begin{equation}
+        \Delta \hat{g}_{r} = \hat{g}_{H} - \hat{g}_{OH} + \hat{g}_{H_{2}O}
+    \end{equation}
+
+    Now is the point where we involve the \textbf{Law of Mass Action}:
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|}
+            \hline
+            Species & $\nu_{(i)} '$ & $\nu_{(i)} ''$ & $\nu_{(i)} '' - \nu_{(i)} ''$ \\
+            \hline
+            $H_{2}O$ & 1 & 0 & -1 \\
+            \hline
+            $OH$ & 0 & 1 & 1 \\
+            \hline
+            $H$ & 0 & 1 & 1 \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    We an now use:
+
+    \begin{equation}
+        K_{n} = \prod^{N_{s}}_{i=1} X_{(n)}^{(\nu_{(i)} '' - \nu_{(i)} ')} = (\frac{p}{p_{a}})^{-\sigma_{v}}K_{p}
+    \end{equation}
+
+    Where;
+
+    \begin{equation}
+        \sigma_{v} = \sum^{N_{s}}_{i=1} (\nu_{(i)} '' - \nu_{(i)} ')
+    \end{equation}
+
+    \begin{equation}
+        K_{p} = e^{- \frac{\Delta G}{\hat{R}T}}
+    \end{equation}
+
+    \begin{equation}
+        \Delta G = \sum^{N_{s}}_{i=1} (\nu_{(i)} '' \hat{g}_{(i)}) \hat{g}_{(i)}
+    \end{equation}
+
+    From here we can solve for the equilibrium constant $K_{n}$.
+
+    \begin{equation}
+        K_{H_{2}O} = (\frac{204 atm}{1 atm})^{-\frac{\Delta G_{H_{2}O}}{\hat{R}T_{C}}}
+    \end{equation}
+
+    \begin{equation}
+        K_{H_{2}} = (\frac{204 atm}{1 atm})^{-\frac{\Delta G_{H_{2}}}{\hat{R}T_{C}}}
+    \end{equation}
+
+    Now we move into the chemistry problem. 
+
+    \textbf{Atom Balance}:
+
+    \begin{equation}
+        H_{2} + l O_{2} \rightarrow N_{H_{2}O} H_{2}O + N_{H_{2}} H_{2} + N_{H}H + N_{OH}OH
+    \end{equation}
+
+    Recall, due to the fule being Hydrogen;
+
+    \begin{equation}
+        mass_{fuel} = 2.02 
+    \end{equation}
+
+    \begin{equation}
+        mass_{Oxidizer} =  \frac{mass_{fuel}}{\phi}
+    \end{equation}
+
+    \begin{equation}
+        l = \frac{mass_{Oxidizer}}{2 \hat{m}_{O_{2}}}
+    \end{equation}
+
+    Where $\hat{m}_{O_{2}}$ is the molar mass of Oxygen. And $\phi$ is the Fuel to Oxidizer ratio, and not the equivalence ratio.
+    Revisiting the \textbf{Atom Balance} equation, we can now solve for the number of moles of each species. 
+
+    For $H_{2}O \rightarrow OH + H$:
+
+    \begin{equation}
+        H_{2}: 2 = 2N_{H_{2}O} + 2N_{H_{2}} + N_{H} + N_{OH}
+    \end{equation}
+
+    \begin{equation}
+        O_{2}: 2l = N_{H_{2}O} + N_{OH}
+    \end{equation}
+
+    \begin{equation}
+        1 = N_{H_{2}O} + N_{H_{2}} + \frac{1}{2}N_{H} + \frac{1}{2}N_{OH}
+    \end{equation}
+
+    Where $\frac{1}{2}N_{H} + \frac{1}{2}N_{OH} \rightarrow 0$. Resulting in:
+
+    \begin{equation}
+        1 = N_{H_{2}O} + N_{H_{2}}
+    \end{equation}
+
+    \begin{equation}
+        2(0.38050899) = N_{H_{2}O} + N_{OH}
+    \end{equation}
+
+    Where $N_{OH} \rightarrow 0$. Resulting in:
+
+    \begin{equation}
+        0.760592 = N_{H_{2}O}
+    \end{equation}
+
+    \begin{equation}
+        X = \frac{N_{Molecule}}{N_{Total}}
+    \end{equation}
+
+    \begin{equation}
+        X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}}
+    \end{equation}
+
+    \begin{equation}
+        X_{H} = \frac{N_{H}}{N_{Total}}
+    \end{equation}
+
+    \begin{equation}
+        X_{OH} = \frac{N_{OH}}{N_{Total}}
+    \end{equation}
+        
+    \begin{equation}
+        X_{H_{2}O} = \frac{N_{H_{2}}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
+    \end{equation}
+
+    \begin{equation}
+        X_{H} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
+    \end{equation}
+
+    \begin{equation}
+        X_{OH} = \frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
+    \end{equation}
+
+    Recall, $N_{OH} \rightarrow 0$ and $N_{H} \rightarrow 0$. Resulting in:
+
+    \begin{equation}
+        K_{n} = \frac{\frac{N_{OH}}{N_{H_{2}O + N_{H_{2}}}} \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}}}{\frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}}}}
+    \end{equation}
+
+    Resulting in,
+
+    \begin{equation}
+        K_{H_{2}O} = \frac{N_{H} N_{OH}}{(N_{H} + N_{H_{2}O}) N_{H_{2}O}}
+    \end{equation}
+
+    Similarly we follow the same steps for the $H_{2} \rightarrow H + H$ reaction.
+
+    \begin{equation}
+        X_{H_{2}} = \frac{N_{H_{2}}}{Total}
+    \end{equation}
+
+    \begin{equation}
+        X_{H} = \frac{N_{H}}{Total}
+    \end{equation}
+
+    \begin{equation}
+        X_{H_{2}} = \frac{N_{H_{2}}}{N_{H_{2}} + N_{H_{2}O} + N_{H} + N_{OH}}
+    \end{equation}
+
+    \begin{equation}
+        X_{H} = \frac{N_{H}}{N_{H_{2}} + N_{H_{2}O} + N_{H} + N_{OH}}
+    \end{equation}
+
+    \begin{equation}
+        K_{H_{2}} = \frac{(\frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}})^{2}}{\frac{N_{H_{2}}}{N_{H_{2}O} + N_{H_{2}}}}
+    \end{equation}
+
+    \begin{equation}
+        K_{H_{2}} = \frac{N_{H}^{2}}{(N_{H_{2}O} + N_{H_{2}}) N_{H_{2}}}
+    \end{equation}
+
+    As a result we have 4 coupled equations:
+
+    \begin{equation}
+        1 = N_{H_{2}O} + N_{H_{2}}
+    \end{equation}
+
+    \begin{equation}
+        0.760592 = N_{H_{2}O}
+    \end{equation}
+
+    \begin{equation}
+        K_{H_{2}O} = \frac{N_{H} N_{OH}}{(N_{H} + N_{H_{2}O}) N_{H_{2}O}}
+    \end{equation}
+
+    \begin{equation}
+        K_{H_{2}} = \frac{N_{H}^{2}}{(N_{H_{2}O} + N_{H_{2}}) N_{H_{2}}}
+    \end{equation}
+
+    Where $K_{H_{2}O}$ and $K_{H_{2}}$ are calculated values.
+    
+    Solving these equations we get:
+
+    \begin{equation}
+        N_{H_{2}O} = 0.760592
+    \end{equation}
+
+    \begin{equation}
+        N_{H_{2}} = 0.239408
+    \end{equation}
+
+    \begin{equation}
+        N_{H} = 0.05333
+    \end{equation}
+
+    \begin{equation}
+        N_{OH} = 0.101958
+    \end{equation}
+
+    \begin{center}
+        \begin{tabular}{|c|c|c|c|c|c|c|c|}
+            \hline
+            Species & $N_{(i)}$ & $X_{(i)}$ & $m_{(i)}$ &  $Y_{(i)}$ & $\hat{c}_{p(i)}$ & $c_{p(i)}$ & $Y_{(i)}c_{p}$ \\
+            \hline
+            $H_{2}O$ & $N_{H_{2}O}$ & $X_{H_{2}O} = N_{H_{2}O}$ & $\hat{m}N_{H_{2}O}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2}O)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}O}c_{p}$ \\
+            \hline
+            $H_{2}$ & $N_{H_{2}}$ & $X_{H_{2}} = N_{H_{2}}$ & $\hat{m}N_{H_{2}}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2})}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}}c_{p}$ \\
+            \hline
+            $H$ & $N_{H}$ & $X_{H} = N_{H}$ & $\hat{m}N_{H}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H}c_{p}$ \\
+            \hline
+            $OH$ & $N_{OH}$ & $X_{OH} = N_{OH}$ & $\hat{m}N_{OH}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(OH)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{OH}c_{p}$ \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    Now we can calculate $c_{p}$, we sum the $Y_{(i)}c_{p}$ values for each species.
+
+    \begin{equation}
+        c_{p} = \sum_{i} Y_{(i)}c_{p}
+    \end{equation}
+
+    \begin{equation}
+        c_{p} = Y_{H_{2}O}c_{p} + Y_{H_{2}}c_{p} + Y_{H}c_{p} + Y_{OH}c_{p}
+    \end{equation}
+
+    We perform now calulate the gas constant $R$.
+
+    \begin{equation}
+        R = \frac{\hat{R}}{m_{Total}}
+    \end{equation}
+
+    \begin{equation}
+        c_{v} = c_{p} - R
+    \end{equation}
+
+    \begin{equation}
+        \gamma = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{\sum_{i} X_{(i)}m_{(i)}}} = \frac{c_{p}}{c_{p}- \frac{\hat{R}}{m_{Total}}} = \frac{c_{p}}{c_{p}- R} = \frac{c_{p}}{c_{v}}
+    \end{equation}
+    
+    \subsection{Nozzle Performance}
+    We begin by defining the Area Ratio:
+
+    \begin{equation}
+        A_{r} = \frac{\pi R_{e}^{2}}{\pi R_{t}^{2}}
+    \end{equation}
+
+    Allowing for us to solve for the Mach number:
+
+    \begin{equation}
+        A_{r} = \left(\frac{\gamma + 1}{2}\right)^{-\frac{\gamma + 1}{2(\gamma - 1)}} \frac{1}{M_{e}} \left[1 + \frac{\gamma - 1}{2} M_{e}^{2}\right]^{\frac{\gamma + 1}{2(\gamma - 1)}}
+    \end{equation}
+
+    We can solve for Mach number $M_{e}$ by making use of the \verb|scipy.optimize.fsolve| function, which returns the roots 
+    of a non-linear function. After solving for $M_{e}$ we can calculate the exit velocity $v_{e}$, exit Pressure $p_{e}$ and exit Temperature $T_{e}$.
+
+    \begin{equation}
+        \label{eq:exit-temperature}
+        T_{e} = T_{c} \left[1 + \frac{\gamma - 1}{2} M_{e}^{2}\right]^{-1} 
+    \end{equation}
+
+    \begin{equation}
+        \label{eq:exit-pressure}
+        p_{e} = p_{c} \left[1 + \frac{\gamma - 1}{2} M_{e}^{2}\right]^{-\frac{\gamma}{\gamma - 1}}
+    \end{equation}
+
+    \begin{equation}
+        \label{eq:exit-velocity}
+        v_{e} = M_{e} \sqrt{\gamma R T_{e}}
+    \end{equation}
+
+    After solving for (Eq. \ref{eq:exit-velocity}), (Eq. \ref{eq:exit-pressure}) and (Eq. \ref{eq:exit-temperature}) we can calculate the mass flow rate $\dot{m}$.
+
+    \begin{equation}
+        \label{eq:mass-flow-rate}
+        \dot{m} = \frac{A_{t} p_{c} \sqrt{\gamma}}{\sqrt{R T_{c}}} \left[ \frac{2}{\gamma + 1} \right]^{\frac{\gamma + 1}{2(\gamma - 1)}}
+    \end{equation}
+
+    Then once you have the mass flow rate you can calculate the thrust $\mathcal{T}$, specific impulse $I_{sp}$ and the thrust coefficient $C_{T}$.
+
+    \begin{equation}
+        \label{eq:thrust}
+        \mathcal{T} = \dot{m} v_{e} + p_{e} A_{e} - p_{c} A_{t}
+    \end{equation}
+
+    \begin{equation}
+        \label{eq:specific-impulse}
+        I_{sp} = \frac{\mathcal{T}}{\dot{m} g_{0}}
+    \end{equation}
+
+    \begin{equation}
+        \label{eq:thrust-coefficient}
+        C_{T} = \frac{\mathcal{T}}{p_{c} A_{t}}
+    \end{equation}
+
+    
+
+
+
+
+    \appendix{}
+    \section{Code listings}
+    \subsection{SSMEMain.py}
+    \lstinputlisting[language=python]{../SSMEMain.py}
+    \subsection{exchanger.py}
+    \lstinputlisting[language=python]{../exchanger.py}
+    \subsection{Iterater.py}
+    \lstinputlisting[language=python]{../Iterater.py}
+
+
+\end{document}
