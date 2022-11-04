@@ -92,7 +92,7 @@ $\Delta G_{H_{2}O} = \bar{g_{H}} + \bar{g_{OH}} - \bar{g_{H_{2}O}}$
 
 </div>
 
-Where $\bar{g_{fh}}$ is the Gibbs Free Energy of formation of $H_{2}$, $\bar{g_{foh}}$ is the Gibbs Free Energy of formation of OH, and $\bar{g_{fh_{2}o}}_{fh_{2}o}$ is the Gibbs Free Energy of formation of $H_{2}O$. These values are read from the `Iterater.py` file.
+Where $\bar{g_{fh}}$ is the Gibbs Free Energy of formation of $H_{2}$, $\bar{g_{foh}}$ is the Gibbs Free Energy of formation of OH, and $\bar{g_{fh_{2}o}}$ is the Gibbs Free Energy of formation of $H_{2}O$. These values are read from the `Iterater.py` file.
 
 ### Law of Mass Action
 Looking at For $H_{2}O \rightarrow OH+H$:
@@ -279,7 +279,7 @@ $\dot{m} = \frac{A_{t} p}{\sqrt{T_{c}}} \sqrt{\frac{\gamma}{R_{sp}}} (\frac{2}{\
 
 </div>
 
-Then onec you have the mass flow rate you can calculate the thrust, specific impulse, and thrust coefficient:
+Then once you have the mass flow rate you can calculate the thrust, specific impulse, and thrust coefficient:
 
 <div align="center">
 
