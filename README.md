@@ -290,3 +290,111 @@ $I_{sp} = \frac{Thrust}{\dot{m} g_{0}}$
 $C_{T} = \frac{Thrust}{pA_{t}}$
 
 </div>
+
+
+## Code Flow
+
+
+```mermaid
+    flowchart
+    A[Givens] --> B[Parameters]
+    B --> SSME
+    D -->|def| FCC
+    FCC1 --> |req| Request
+    Request --> |return| del_h_hat
+    phi --> FCC2
+    T_alg --> |req| Request
+    Request --> |return| T_alg
+    E -->|def| Comb
+    Gibbs --> |req| Request
+    Request --> |return| Gibbs
+    cpval --> |req| Request
+    Request --> |return| cpval
+    N --> |def| Nozzle
+
+
+    subgraph SSME[SSMEMain.py]
+    C[Read in Givens] --> phi["equivalence ratio"]
+    phi --> D[FCC]
+    D--> E[Comb Chamber]
+    E --> N[Nozzle]
+
+  
+    end
+    
+
+    subgraph FCC[FCC]
+    FCC1["h_(i)(InjectionTemp)"] 
+    b_hat["b_hat_table"]
+    del_h_hat["del_h_hat_(i)"]
+    b_hat --> del_h_hat
+    FCC2["mols_(i)"]
+    h_total["del_h_total"]
+    T_alg["T_algorithm"]
+
+    del_h_hat --> h_total
+    FCC2 --> h_total
+    h_total --> T_alg
+    end 
+
+    subgraph Iter["Iterater.py"]
+    Request["Request_(i) (input,output)"] 
+
+    Request --> |"(T,h)"|Iter1
+    Request --> |"(h,T)"|Iter2
+    Request --> |"(T,g)"|Iter3
+    Request --> |"(T,cp)"|Iter4
+    Request --> |"(T,S)"|Iter5
+    Iter1["(i)_tableH = (i)_table_f"]
+    Iter2["(i)_tableT"]
+    Iter3["(i)_tableg"]
+    Iter4["(i)_table_cp"]
+    Iter5["(i)_tableS"]
+
+    MachS["MachSolve"]
+    end
+
+    subgraph Comb["Comb Chamber"]
+    Atom["Atom Balance"]
+    Gibbs["Gibbs Free Energy"]
+    gibbs_r["g_reaction"]
+    LMA["LawOfMassAction_df"]
+    cpval["cp_values_(i)"]
+    Gibbs --> gibbs_r
+    gibbs_r --> k_n["K_(n)"]
+    T_alg --> k_n
+
+    Atom --> eq["equations"]
+    eq --> sol["solution(s)"]
+    k_n --> eq
+    sol --> LMA
+    cpval --> LMA
+    LMA --> R["R"]
+    R --> cv["cv"]
+    cv --> gamma["gamma"]
+    end
+
+    subgraph Nozzle["Nozzle"]
+    A_r["Area Ratio"]
+    gam["gamma"]
+    gam --> Mach
+    A_r --> Mach
+    Mach -->|req| MachS
+    MachS --> |return|Mach
+    Mach --> mdot["mdot"]
+    Mach --> T_e["T_e"]
+    Mach --> p_e["p_e"]
+    Mach --> v_e["v_e"]
+
+    v_e --> Thrust["Thrust"]
+    mdot --> Thrust
+    p_e --> Thrust
+    c_T["c_T"]
+    Thrust --> c_T
+    Thrust --> Isp["Isp"]
+
+    end
+
+    subgraph Mach["mach"]
+    end
+```
