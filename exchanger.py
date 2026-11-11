@@ -138,17 +138,20 @@ def OCC(FEE_T, p_starting, FO_ratio):
     molar_mass_h = 1.00794
     molar_mass_oh = 17.00734
     molar_mass_h2 = 2.01588
-    molar_mass_total = molar_mass_h2o + molar_mass_h + molar_mass_oh + molar_mass_h2
 
     LawOfMassAction_df = pd.DataFrame({'substance': ['N_H2O', 'N_H2', 'N_H', 'N_OH', 'Total'],
                                        'mols': [N_h2o, N_h2, N_h, N_oh, N_total]})
-    LawOfMassAction_df['X_(i)'] = LawOfMassAction_df['mols']
-    LawOfMassAction_df['m_hat_(i)'] = pd.Series([molar_mass_h2o, molar_mass_h2, molar_mass_h, molar_mass_oh, molar_mass_total])\
+    # Mole fractions must be normalized by the total moles: once H and OH form,
+    # N_total = N_H2O + N_H2 + N_H + N_OH > 1, so X_(i) != N_(i).
+    LawOfMassAction_df['X_(i)'] = LawOfMassAction_df['mols'] / N_total
+    # X_(i)*m_hat_(i): the species' contribution to the mixture molar mass (g/mol)
+    LawOfMassAction_df['m_hat_(i)'] = pd.Series([molar_mass_h2o, molar_mass_h2, molar_mass_h, molar_mass_oh, 0.0])\
                                       * LawOfMassAction_df['X_(i)']
 
-    # sum m_hat_(i)[i=0 to i=3]
-    m_hat_total = sum(LawOfMassAction_df['m_hat_(i)'])-LawOfMassAction_df['m_hat_(i)'][4]
+    # mixture molar mass m_hat = sum_i X_(i) m_hat_(i), over the four species
+    m_hat_total = sum(LawOfMassAction_df['m_hat_(i)'][0:4])
     LawOfMassAction_df.loc[4, 'm_hat_(i)'] = m_hat_total
+    # mass fractions Y_(i) = X_(i) m_hat_(i) / m_hat
     LawOfMassAction_df['Y_(i)'] = LawOfMassAction_df['m_hat_(i)'] / m_hat_total
 
     h2_cp = h2_table_cp(FEE_T)

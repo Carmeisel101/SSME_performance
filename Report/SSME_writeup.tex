@@ -431,13 +431,13 @@
             \hline
             Species & $N_{(i)}$ & $X_{(i)}$ & $m_{(i)}$ &  $Y_{(i)}$ & $\hat{c}_{p(i)}$ & $c_{p(i)}$ & $Y_{(i)}c_{p}$ \\
             \hline
-            $H_{2}O$ & $N_{H_{2}O}$ & $X_{H_{2}O} = N_{H_{2}O}$ & $\hat{m}N_{H_{2}O}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2}O)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}O}c_{p}$ \\
+            $H_{2}O$ & $N_{H_{2}O}$ & $X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}}$ & $\hat{m}N_{H_{2}O}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2}O)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}O}c_{p}$ \\
             \hline
-            $H_{2}$ & $N_{H_{2}}$ & $X_{H_{2}} = N_{H_{2}}$ & $\hat{m}N_{H_{2}}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2})}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}}c_{p}$ \\
+            $H_{2}$ & $N_{H_{2}}$ & $X_{H_{2}} = \frac{N_{H_{2}}}{N_{Total}}$ & $\hat{m}N_{H_{2}}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H_{2})}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H_{2}}c_{p}$ \\
             \hline
-            $H$ & $N_{H}$ & $X_{H} = N_{H}$ & $\hat{m}N_{H}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H}c_{p}$ \\
+            $H$ & $N_{H}$ & $X_{H} = \frac{N_{H}}{N_{Total}}$ & $\hat{m}N_{H}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(H)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{H}c_{p}$ \\
             \hline
-            $OH$ & $N_{OH}$ & $X_{OH} = N_{OH}$ & $\hat{m}N_{OH}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(OH)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{OH}c_{p}$ \\
+            $OH$ & $N_{OH}$ & $X_{OH} = \frac{N_{OH}}{N_{Total}}$ & $\hat{m}N_{OH}$ & $\frac{\hat{m}}{m_{(i)}}$ & $\hat{c}_{p(OH)}(T_{C})$ & $\frac{\hat{c}_{p}}{\hat{m}}$ & $Y_{OH}c_{p}$ \\
             \hline
         \end{tabular}
     \end{center}
@@ -457,6 +457,8 @@
     \begin{equation}
         R = \frac{\hat{R}}{m_{Total}}
     \end{equation}
+    where $m_{Total} = \sum_{i} X_{(i)} m_{(i)}$ is the mixture molar mass. The mole fractions are normalized by
+    $N_{Total} = N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}$, which exceeds one once dissociation produces H and OH.
 
     \begin{equation}
         c_{v} = c_{p} - R

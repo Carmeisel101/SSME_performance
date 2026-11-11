@@ -221,10 +221,10 @@ We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
 
 | Species | $N_{(i)}$ | $X_{(i)}$ | $m_{(i)}$ | $Y_{(i)}$ | $\hat{c_{p}}_{(i)}$ | $c_{p_{(i)}}$ | $Y_{(i)}c_{p}$ |
 |---------|-------|-------|---------------|-------|-------|---------------|-------|
-| $H_{2}O$ | $N_{H_{2}O}$ | $X_{H_{2}O} = N_{H_{2}O}$ | $\hat{m} N_{H_{2}O}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}O}c_{p}$ |
-| $H_{2}$ | $N_{H_{2}}$ | $X_{H_{2}} = N_{H_{2}}$ | $\hat{m} N_{H_{2}}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}}c_{p}$ |
-| $H$ | $N_{H}$ | $X_{H} = N_{H}$ | $\hat{m} N_{H}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H}c_{p}$ |
-| $OH$ | $N_{OH}$ | $X_{OH} = N_{OH}$ | $\hat{m} N_{OH}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{OH}c_{p}$ |
+| $H_{2}O$ | $N_{H_{2}O}$ | $X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}}$ | $\hat{m} N_{H_{2}O}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}O}c_{p}$ |
+| $H_{2}$ | $N_{H_{2}}$ | $X_{H_{2}} = \frac{N_{H_{2}}}{N_{Total}}$ | $\hat{m} N_{H_{2}}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H_{2}}c_{p}$ |
+| $H$ | $N_{H}$ | $X_{H} = \frac{N_{H}}{N_{Total}}$ | $\hat{m} N_{H}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{H}c_{p}$ |
+| $OH$ | $N_{OH}$ | $X_{OH} = \frac{N_{OH}}{N_{Total}}$ | $\hat{m} N_{OH}$ | $\frac{\hat{m}}{m_{(i)}}$ | $\hat{c_{p}} (T_{c})$ | $\frac{\hat{c_{p}}}{\hat{m}}$ | $Y_{OH}c_{p}$ |
 
 
 </div>
@@ -236,6 +236,8 @@ Now to calculate $c_{p}$ we sum the $Y_{(i)}c_{p}$ for each species:
 $c_{p} = \sum_{i} Y_{(i)}c_{p}$
 
 $m_{(total)} = \sum_{i} X_{(i)}m_{(i)}$
+
+$X_{(i)} = \frac{N_{(i)}}{N_{Total}}, \quad N_{Total} = N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}$
 
 </div>
 
@@ -305,9 +307,9 @@ The thrust comes from a momentum balance on a control volume around the engine, 
 
 | Output | Vacuum | Sea level |
 |--------|--------|-----------|
-| Thrust | 2.207 MN | 1.785 MN |
-| $C_{T}$ | 1.986 | 1.606 |
-| $I_{sp}$ | 441.6 s | 357.1 s |
+| Thrust | 2.153 MN | 1.730 MN |
+| $C_{T}$ | 1.937 | 1.557 |
+| $I_{sp}$ | 463.9 s | 372.9 s |
 
 For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 

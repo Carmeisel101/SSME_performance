@@ -1,6 +1,7 @@
 """Regression checks for the SSME model (run with `make test`).
 
-Reference values are the model's own output after the thrust-equation fix.
+Reference values are the model's own output after the thrust-equation fix (bug 1)
+and the mixture molar-mass fix (bug 2).
 When a later fix changes the physics on purpose, update REFERENCE here in the same commit.
 """
 import contextlib
@@ -15,13 +16,13 @@ from exchanger import FEE, OCC, OxNozzlePerf  # noqa: E402
 REL_TOL = 1e-6
 REFERENCE = {
     'T_chamber': 3907.4016344537067,
-    'gamma': 1.16215449646827,
-    'M_e': 4.437020690819335,
-    'm_dot': 509.436188232153,
-    'F_vac': 2207117.6879859576,
-    'Isp_vac': 441.63826154075105,
-    'F_sl': 1784750.4357336806,
-    'Isp_sl': 357.1237202311504,
+    'gamma': 1.1982416116713446,
+    'M_e': 4.694001898752873,
+    'm_dot': 473.0298954508581,
+    'F_vac': 2152570.052117501,
+    'Isp_vac': 463.873643597391,
+    'F_sl': 1730202.7998652237,
+    'Isp_sl': 372.8545215735808,
 }
 
 p_c = 204 * 101325
