@@ -93,9 +93,9 @@ def OCC(FEE_T, p_starting, FO_ratio):
     g_f_oh = oh_table_g(FEE_T)
     g_f_h2 = h2_table_g(FEE_T)
 
-    # Gibbs free energy of reaction
-    g_r_h2 = 2*(g_f_h - g_f_h2)
-    g_r_h2o = g_f_h + g_f_h2o - g_f_oh
+    # Gibbs free energy of reaction: dG = sum_i (nu''_(i) - nu'_(i)) g_f(i), i.e. products minus reactants
+    g_r_h2 = 2*g_f_h - g_f_h2             # H2  -> 2H
+    g_r_h2o = g_f_h + g_f_oh - g_f_h2o    # H2O -> H + OH
 
     k_h2 = ((p_starting/101325)**-1)*np.exp(-g_r_h2/(8.314*FEE_T))
     k_h2o = ((p_starting/101325)**-1)*np.exp(-g_r_h2o/(8.314*FEE_T))

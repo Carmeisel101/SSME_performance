@@ -307,9 +307,9 @@ The thrust comes from a momentum balance on a control volume around the engine, 
 
 | Output | Vacuum | Sea level |
 |--------|--------|-----------|
-| Thrust | 2.153 MN | 1.730 MN |
-| $C_{T}$ | 1.937 | 1.557 |
-| $I_{sp}$ | 463.9 s | 372.9 s |
+| Thrust | 2.157 MN | 1.734 MN |
+| $C_{T}$ | 1.941 | 1.561 |
+| $I_{sp}$ | 467.6 s | 376.0 s |
 
 For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 

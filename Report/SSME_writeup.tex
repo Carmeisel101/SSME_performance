@@ -214,11 +214,11 @@
     We can then calculate the Gibbs Free Energy of the reaction by:
 
     \begin{equation}
-        \Delta \hat{g}_{r} = 2(\hat{g}_{H} - \hat{g}_{H_{2}}) 
+        \Delta \hat{g}_{H_{2}} = 2\hat{g}_{H} - \hat{g}_{H_{2}}
     \end{equation}
 
     \begin{equation}
-        \Delta \hat{g}_{r} = \hat{g}_{H} - \hat{g}_{OH} + \hat{g}_{H_{2}O}
+        \Delta \hat{g}_{H_{2}O} = \hat{g}_{H} + \hat{g}_{OH} - \hat{g}_{H_{2}O}
     \end{equation}
 
     Now is the point where we involve the \textbf{Law of Mass Action}:
@@ -226,7 +226,7 @@
     \begin{center}
         \begin{tabular}{|c|c|c|c|}
             \hline
-            Species & $\nu_{(i)} '$ & $\nu_{(i)} ''$ & $\nu_{(i)} '' - \nu_{(i)} ''$ \\
+            Species & $\nu_{(i)} '$ & $\nu_{(i)} ''$ & $\nu_{(i)} '' - \nu_{(i)} '$ \\
             \hline
             $H_{2}O$ & 1 & 0 & -1 \\
             \hline
@@ -254,17 +254,17 @@
     \end{equation}
 
     \begin{equation}
-        \Delta G = \sum^{N_{s}}_{i=1} (\nu_{(i)} '' \hat{g}_{(i)}) \hat{g}_{(i)}
+        \Delta G = \sum^{N_{s}}_{i=1} (\nu_{(i)} '' - \nu_{(i)} ') \hat{g}_{(i)}
     \end{equation}
 
-    From here we can solve for the equilibrium constant $K_{n}$.
+    Both reactions have $\sigma_{v} = +1$, so we can solve for the equilibrium constant $K_{n}$.
 
     \begin{equation}
-        K_{H_{2}O} = (\frac{204 atm}{1 atm})^{-\frac{\Delta G_{H_{2}O}}{\hat{R}T_{C}}}
+        K_{H_{2}O} = \left(\frac{204 atm}{1 atm}\right)^{-1} e^{-\frac{\Delta \hat{g}_{H_{2}O}}{\hat{R}T_{C}}}
     \end{equation}
 
     \begin{equation}
-        K_{H_{2}} = (\frac{204 atm}{1 atm})^{-\frac{\Delta G_{H_{2}}}{\hat{R}T_{C}}}
+        K_{H_{2}} = \left(\frac{204 atm}{1 atm}\right)^{-1} e^{-\frac{\Delta \hat{g}_{H_{2}}}{\hat{R}T_{C}}}
     \end{equation}
 
     Now we move into the chemistry problem. 
