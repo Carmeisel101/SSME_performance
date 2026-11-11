@@ -292,138 +292,36 @@
     Where $\hat{m}_{O_{2}}$ is the molar mass of Oxygen. And $\phi$ is the Fuel to Oxidizer ratio, and not the equivalence ratio.
     Revisiting the \textbf{Atom Balance} equation, we can now solve for the number of moles of each species. 
 
-    For $H_{2}O \rightarrow OH + H$:
+    The atom balances for hydrogen and oxygen are:
 
     \begin{equation}
-        H_{2}: 2 = 2N_{H_{2}O} + 2N_{H_{2}} + N_{H} + N_{OH}
+        H: \quad 2 = 2N_{H_{2}O} + 2N_{H_{2}} + N_{H} + N_{OH}
     \end{equation}
 
     \begin{equation}
-        O_{2}: 2l = N_{H_{2}O} + N_{OH}
+        O: \quad 2l = N_{H_{2}O} + N_{OH}
     \end{equation}
 
+    That is four unknowns with only two equations, so the Law of Mass Action supplies the other two.
+    The mole fractions are normalized by the full total,
     \begin{equation}
-        1 = N_{H_{2}O} + N_{H_{2}} + \frac{1}{2}N_{H} + \frac{1}{2}N_{OH}
+        X_{(i)} = \frac{N_{(i)}}{N_{Total}}, \qquad N_{Total} = N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH},
+    \end{equation}
+    so the two equilibrium relations become
+    \begin{equation}
+        K_{H_{2}O} = \frac{X_{H} X_{OH}}{X_{H_{2}O}} = \frac{N_{H} N_{OH}}{N_{H_{2}O} N_{Total}}
+    \end{equation}
+    \begin{equation}
+        K_{H_{2}} = \frac{X_{H}^{2}}{X_{H_{2}}} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}
     \end{equation}
 
-    Where $\frac{1}{2}N_{H} + \frac{1}{2}N_{OH} \rightarrow 0$. Resulting in:
+    The four coupled equations (two atom balances and two equilibrium relations) are solved with
+    \verb|scipy.optimize.fsolve| in terms of $\ln N_{(i)}$, which keeps every mole number positive.
+    The starting guess is complete combustion, $N_{H_{2}O} = 2l$ and $N_{H_{2}} = 1 - 2l$.
+    At the current chamber temperature the solution is:
 
     \begin{equation}
-        1 = N_{H_{2}O} + N_{H_{2}}
-    \end{equation}
-
-    \begin{equation}
-        2(0.38050899) = N_{H_{2}O} + N_{OH}
-    \end{equation}
-
-    Where $N_{OH} \rightarrow 0$. Resulting in:
-
-    \begin{equation}
-        0.760592 = N_{H_{2}O}
-    \end{equation}
-
-    \begin{equation}
-        X = \frac{N_{Molecule}}{N_{Total}}
-    \end{equation}
-
-    \begin{equation}
-        X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}}
-    \end{equation}
-
-    \begin{equation}
-        X_{H} = \frac{N_{H}}{N_{Total}}
-    \end{equation}
-
-    \begin{equation}
-        X_{OH} = \frac{N_{OH}}{N_{Total}}
-    \end{equation}
-        
-    \begin{equation}
-        X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
-    \end{equation}
-
-    \begin{equation}
-        X_{H} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
-    \end{equation}
-
-    \begin{equation}
-        X_{OH} = \frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}
-    \end{equation}
-
-    Recall, $N_{OH} \rightarrow 0$ and $N_{H} \rightarrow 0$. Resulting in:
-
-    \begin{equation}
-        K_{H_{2}O} = \frac{\frac{N_{OH}}{N_{H_{2}O + N_{H_{2}}}} \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}}}{\frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}}}}
-    \end{equation}
-
-    Resulting in,
-
-    \begin{equation}
-        K_{H_{2}O} = \frac{N_{H} N_{OH}}{(N_{H} + N_{H_{2}O}) N_{H_{2}O}}
-    \end{equation}
-
-    Similarly we follow the same steps for the $H_{2} \rightarrow H + H$ reaction.
-
-    \begin{equation}
-        X_{H_{2}} = \frac{N_{H_{2}}}{Total}
-    \end{equation}
-
-    \begin{equation}
-        X_{H} = \frac{N_{H}}{Total}
-    \end{equation}
-
-    \begin{equation}
-        X_{H_{2}} = \frac{N_{H_{2}}}{N_{H_{2}} + N_{H_{2}O} + N_{H} + N_{OH}}
-    \end{equation}
-
-    \begin{equation}
-        X_{H} = \frac{N_{H}}{N_{H_{2}} + N_{H_{2}O} + N_{H} + N_{OH}}
-    \end{equation}
-
-    \begin{equation}
-        K_{H_{2}} = \frac{(\frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}})^{2}}{\frac{N_{H_{2}}}{N_{H_{2}O} + N_{H_{2}}}}
-    \end{equation}
-
-    \begin{equation}
-        K_{H_{2}} = \frac{N_{H}^{2}}{(N_{H_{2}O} + N_{H_{2}}) N_{H_{2}}}
-    \end{equation}
-
-    As a result we have 4 coupled equations:
-
-    \begin{equation}
-        1 = N_{H_{2}O} + N_{H_{2}}
-    \end{equation}
-
-    \begin{equation}
-        0.760592 = N_{H_{2}O}
-    \end{equation}
-
-    \begin{equation}
-        K_{H_{2}O} = \frac{N_{H} N_{OH}}{(N_{H} + N_{H_{2}O}) N_{H_{2}O}}
-    \end{equation}
-
-    \begin{equation}
-        K_{H_{2}} = \frac{N_{H}^{2}}{(N_{H_{2}O} + N_{H_{2}}) N_{H_{2}}}
-    \end{equation}
-
-    Where $K_{H_{2}O}$ and $K_{H_{2}}$ are calculated values.
-    
-    Solving these equations we get:
-
-    \begin{equation}
-        N_{H_{2}O} = 0.760592
-    \end{equation}
-
-    \begin{equation}
-        N_{H_{2}} = 0.239408
-    \end{equation}
-
-    \begin{equation}
-        N_{H} = 0.05333
-    \end{equation}
-
-    \begin{equation}
-        N_{OH} = 0.101958
+        N_{H_{2}O} = 0.6844, \quad N_{H_{2}} = 0.2529, \quad N_{H} = 0.0488, \quad N_{OH} = 0.0766
     \end{equation}
 
     \begin{center}

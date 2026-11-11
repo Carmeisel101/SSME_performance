@@ -1,7 +1,7 @@
 from Iterater import *
+from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
-from sympy import Eq, solve, var
 
 
 def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
@@ -108,30 +108,27 @@ def OCC(FEE_T, p_starting, FO_ratio):
     mass_oxider = mass_fuel/FO_ratio
     l = mass_oxider/ (2*15.99)
 
-    N_h = var('N_h')
-    N_oh = var('N_oh')
-    N_h2 = var('N_h2')
-    N_h2o = var('N_h2o')
+    # Products per mole of H2 fed: H2 + l O2 -> N_H2O H2O + N_H2 H2 + N_H H + N_OH OH
+    #   H atoms:  2N_H2O + 2N_H2 + N_H + N_OH = 2
+    #   O atoms:   N_H2O + N_OH               = 2l
+    #   H2O -> H + OH:  X_H X_OH / X_H2O = N_H N_OH / (N_H2O N_total) = k_h2o
+    #   H2  -> 2H:      X_H^2 / X_H2     = N_H^2   / (N_H2 N_total)   = k_h2
+    # Solved in log(N) so every mole number stays positive (no root picking needed).
+    def residuals(log_n):
+        n_h2o, n_h2, n_h, n_oh = np.exp(log_n)
+        n_tot = n_h2o + n_h2 + n_h + n_oh
+        return [2*n_h2o + 2*n_h2 + n_h + n_oh - 2,
+                n_h2o + n_oh - 2*l,
+                np.log(n_h*n_oh/(n_h2o*n_tot)) - np.log(k_h2o),
+                np.log(n_h**2/(n_h2*n_tot)) - np.log(k_h2)]
 
+    # start from complete combustion with a little dissociation
+    guess = np.log([2*l, 1 - 2*l, 0.01, 0.01])
+    log_n, info, ier, msg = fsolve(residuals, guess, full_output=True, xtol=1e-12)
+    if ier != 1 or max(abs(r) for r in residuals(log_n)) > 1e-9:
+        raise RuntimeError(f'OCC equilibrium solve did not converge: {msg}')
 
-    # solve the system of equations - Law of mass action
-    sol = solve([Eq(N_h2o, 2*l), Eq(N_h2o+N_h2, 1), Eq((N_h*N_oh)/((N_h2+N_h2o)*N_h2o), k_h2o),
-                 Eq((N_h**2)/((N_h2+N_h2o)*N_h2), k_h2)], [N_h, N_oh, N_h2, N_h2o])
-    # split sol into two separate lists
-    sol1 = sol[0]
-    sol2 = sol[1]
-
-    # if all the solutions are real and positive then assign mols_sol to the solution
-    if all(i > 0 for i in sol1) and all(i > 0 for i in sol2):
-        mols_sol = sol1
-    else:
-        mols_sol = sol2
-
-    # print('mols_sol = ', mols_sol)
-    N_h = mols_sol[0]
-    N_oh = mols_sol[1]
-    N_h2 = mols_sol[2]
-    N_h2o = mols_sol[3]
+    N_h2o, N_h2, N_h, N_oh = (float(n) for n in np.exp(log_n))
     N_total = N_h + N_oh + N_h2 + N_h2o
 
     molar_mass_h2o = 18.01528

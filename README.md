@@ -159,27 +159,13 @@ $O_{2}: 2l = N_{H_{2}O} + N_{OH}$
 
 </div>
 
-Where $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$ are the number of moles of each species. We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
+Where $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$ are the number of moles of each species. That is 4 unknowns with only 2 atom-balance equations, so the Law of Mass Action supplies the other two. The mole fractions use the full total:
 
 <div align="center">
 
-$1 = N_{H_{2}O} + N_{H_{2}}$
+$X_{(i)} = \frac{N_{(i)}}{N_{Total}}, \quad N_{Total} = N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}$
 
-$0.760592 = N_{H_{2}O}$
-
-</div>
-
-Resulting in us having 4 unknown values with only 2 equations. This a signal to us prompting the Law of Mass Action. When solving for the Moler Fraction of each species we get:
-
-<div align="center">
-
-$X_{H_{2}O} = \frac{N_{H_{2}O}}{N_{Total}} = \frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
-
-$X_{H} = \frac{N_{H}}{N_{Total}} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
-
-$X_{OH} = \frac{N_{OH}}{N_{Total}} = \frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
-
-$K_{H_{2}O \rightarrow OH+H} = \frac{\frac{N_{OH}}{N_{H_{2}O} + N_{H_{2}}} \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}}}}{\frac{N_{H_{2}O}}{N_{H_{2}O} + N_{H_{2}}}} = \frac{N_{H}N_{OH}}{(N_{H_{2}O} + N_{H_{2}})N_{H_{2}O}}$
+$K_{H_{2}O \rightarrow OH+H} = \frac{X_{H} X_{OH}}{X_{H_{2}O}} = \frac{N_{H}N_{OH}}{N_{H_{2}O} N_{Total}}$
 
 </div>
 
@@ -193,27 +179,25 @@ Similarly for the $H_{2}\rightarrow 2H$ Reaction:
 | $H_{2}$ | 1 | 0 | -1 |
 | $H$ | 0 | 2 | 2 |
 
-$X_{H_{2}} = \frac{N_{H_{2}}}{N_{Total}} = \frac{N_{H_{2}}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
-
-$X_{H} = \frac{N_{H}}{N_{Total}} = \frac{N_{H}}{N_{H_{2}O} + N_{H_{2}} + N_{H} + N_{OH}}$
-
-$K_{H_{2}\rightarrow 2H} = \frac{(\frac{N_{H}}{N_{H_{2}}+ N_{H_{2}O}})^{2}}{\frac{N_{H_{2}}}{N_{H_{2}}+ N_{H_{2}O}}} = \frac{N_{H}^{2}}{N_{H_{2}}(N_{H_{2}}+ N_{H_{2}O})}$
+$K_{H_{2}\rightarrow 2H} = \frac{X_{H}^{2}}{X_{H_{2}}} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}$
 
 </div>
 
-After this we know have to solve a system of coupled equations:
+This gives 4 coupled equations in 4 unknowns:
 
 <div align="center">
 
-$1 = N_{H_{2}O} + N_{H_{2}}$
+$2 = 2N_{H_{2}O} + 2N_{H_{2}} + N_{H} + N_{OH}$
 
-$0.760592 = N_{H_{2}O}$
+$2l = N_{H_{2}O} + N_{OH}$
 
-$K_{H_{2}O \rightarrow OH+H} = \frac{N_{H}N_{OH}}{(N_{H_{2}O} + N_{H_{2}})N_{H_{2}O}}$
+$K_{H_{2}O \rightarrow OH+H} = \frac{N_{H}N_{OH}}{N_{H_{2}O} N_{Total}}$
 
-$K_{H_{2}\rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}}(N_{H_{2}}+ N_{H_{2}O})}$ 
+$K_{H_{2}\rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}$
 
 </div>
+
+The code solves them with `scipy.optimize.fsolve` in terms of $\ln N_{(i)}$, which keeps every mole number positive, starting from complete combustion ($N_{H_{2}O} = 2l$, $N_{H_{2}} = 1 - 2l$). At the current chamber temperature this gives $N_{H_{2}O} = 0.6844$, $N_{H_{2}} = 0.2529$, $N_{H} = 0.0488$, $N_{OH} = 0.0766$.
 
 We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
 
@@ -307,9 +291,9 @@ The thrust comes from a momentum balance on a control volume around the engine, 
 
 | Output | Vacuum | Sea level |
 |--------|--------|-----------|
-| Thrust | 2.157 MN | 1.734 MN |
-| $C_{T}$ | 1.941 | 1.561 |
-| $I_{sp}$ | 467.6 s | 376.0 s |
+| Thrust | 2.152 MN | 1.730 MN |
+| $C_{T}$ | 1.937 | 1.557 |
+| $I_{sp}$ | 475.1 s | 381.9 s |
 
 For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 
