@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
