@@ -1,113 +1,127 @@
+<div align="center">
+
 # rs25-gone-fluorine
 
-*The Space Shuttle Main Engine, modeled from the thermo tables up, then switched to fluorine.*
+**A first-principles performance model of the Space Shuttle Main Engine (RS-25), from propellant enthalpy and chemical equilibrium to nozzle thrust and specific impulse, and the same engine run on fluorine.**
 
-A performance model of the Space Shuttle Main Engine, built from the course data of Dr. Rodney Bowersox. It finds the chamber temperature and equilibrium gas composition from an energy balance on the propellants, then computes ideal nozzle performance (thrust, thrust coefficient, specific impulse) in vacuum and at sea level. It runs two engines:
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Thermo data](https://img.shields.io/badge/Thermo%20data-NIST--JANAF-1f5f94)](https://janaf.nist.gov/)
+[![Write-up](https://img.shields.io/badge/Write--up-Markdown-008080?logo=markdown&logoColor=white)](docs/SSME_writeup.md)
 
-- **H₂/O₂**: the SSME itself.
-- **H₂/F₂**: the same engine with fluorine as the oxidizer, at the same equivalence ratio, injection temperatures, chamber pressure and nozzle.
+<img src="docs/rs25-schematic.svg" alt="To-scale half-section of the RS-25 thrust chamber and bell nozzle with stations c, t and e, the propellant inlet temperatures, throat and exit radii, and the computed chamber temperature and vacuum specific impulse for both oxidizers" width="100%">
 
-**The full write-up, with every equation and the results for both engines, is in [docs/SSME_writeup.md](docs/SSME_writeup.md).**
+<sub>The RS-25 thrust chamber and bell nozzle drawn to scale from the givens, with the stations used throughout the code: chamber (c), throat (t) and exit (e).</sub>
 
-## Givens
+</div>
 
-| Combustion chamber | |
-|:--|:--|
-| Fuel | Hydrogen |
-| Oxidizer | O₂ (and F₂ for the fluorine variant) |
-| Fuel/oxidizer mass ratio, H₂/O₂ | 0.166 |
-| Equivalence ratio φ (both engines) | 1.317 |
-| Hydrogen injection temperature | 850 K |
-| Oxidizer injection temperature | 530 K |
-| Chamber pressure | 204 atm |
+---
 
-| Nozzle geometry | |
-|:--|:--|
-| Throat radius | 5.15 in |
-| Exit radius | 45.35 in (area ratio 77.5) |
-| θₚ | 32° (not used by the ideal-nozzle model) |
+## Overview
 
-## Results
+The RS-25 burns liquid hydrogen with liquid oxygen at about 3000 psi and expands the exhaust through a 77.5 : 1 bell nozzle. This repository models its thrust chamber from the thermo tables up: it finds how hot the chamber gets once the products partly break apart, what the gas is made of, and what thrust and specific impulse the nozzle delivers. Then it asks what happens if the oxidizer is swapped for fluorine.
 
-| | H₂/O₂ | H₂/F₂ |
-|:--|:--:|:--:|
-| Complete-combustion temperature | 4617 K | 7107 K |
-| Chamber temperature (with dissociation) | 3949 K | 5190 K |
-| Mixture molar mass | 13.26 g/mol | 15.43 g/mol |
-| γ (frozen) | 1.199 | 1.319 |
-| Mass flow | 457.9 kg/s | 445.7 kg/s |
-| Vacuum thrust | 2.151 MN | 2.009 MN |
-| Vacuum specific impulse | 478.8 s | 459.5 s |
-| Sea-level specific impulse | 384.8 s | 362.8 s |
-
-For reference, the real RS-25 is rated at about 2.28 MN and 452 s in vacuum at 109% power. The model sits higher mainly because of the warm injection temperatures in the givens and the loss-free nozzle. The fluorine engine comes out below the oxygen one, even with a hotter chamber, because the nozzle model keeps the composition frozen and never recovers the energy stored in its H and F atoms; see [Fluorine](docs/SSME_writeup.md#fluorine).
-
-## Method
-
-Each engine goes through the same steps (details and equations in the [write-up](docs/SSME_writeup.md)):
-
-1. **First enthalpy exchanger** (`FEE`, `FEE_F`): the temperature reached if the propellants burned completely, with no dissociation. This is an upper bound.
-2. **Combustion chamber** (`OCC`, `FCC`): the equilibrium mixture at a given temperature (H₂O, H₂, H, OH for oxygen; HF, H₂, H, F for fluorine), from the atom balances and the law of mass action.
-3. **Second enthalpy exchanger** (`ChamberTemperature`, `FluorineChamberTemperature`): the temperature at which the equilibrium mixture carries exactly the propellant enthalpy. Steps 2 and 3 are solved together.
-4. **Nozzle** (`OxNozzlePerf`): isentropic expansion with frozen γ to the 77.5 area ratio, giving exit conditions, mass flow, thrust, thrust coefficient and specific impulse.
-
-## Running it
-
-Requires Python 3.11+ (tested on 3.15).
-
-```bash
-make setup   # create .venv and install requirements.txt
-make         # run the model (SSMEMain.py)
-make test    # regression checks
-```
-
-`make test` runs `tests/check_regression.py`. It compares the results of both engines with saved values and checks the physics directly: atom and energy balances, equilibrium constants against the Gibbs tables, and the thrust equations.
-
-## Project layout
-
-| Path | Contents |
-|:--|:--|
-| `SSMEMain.py` | Givens, and the run of both engines |
-| `exchanger.py` | Enthalpy exchangers, chamber equilibria, nozzle |
-| `Iterater.py` | Thermo table lookups, species enthalpies, Mach-number solver |
-| `tables/` | Thermo tables (course data, plus F-atom, HF Gibbs and H to 6000 K from [NIST-JANAF](https://janaf.nist.gov/)) |
-| `tests/` | Regression checks |
-| `docs/SSME_writeup.md` | Full write-up |
-
-## Code flow
+Both engines go through the same four steps. Steps 2 and 3 are solved together, because the composition depends on temperature and the temperature depends on the composition.
 
 ```mermaid
-flowchart TD
-    G["Givens: F/O, injection temperatures, p_c, nozzle radii"] --> phi["equivalence ratio phi"]
-
-    subgraph O2["H2/O2 engine (exchanger.py)"]
-        FEE["FEE: complete combustion<br/>2 H2O + (2phi-2) H2 -> T_FEE"]
-        CT["ChamberTemperature<br/>energy balance -> T_c"]
-        OCC["OCC: H2O, H2, H, OH equilibrium<br/>-> gamma, R, cp"]
-        FEE --> CT
-        CT -- "trial T" --> OCC
-        OCC -- "composition" --> CT
-    end
-
-    subgraph F2["H2/F2 engine (exchanger.py)"]
-        FEEF["FEE_F: complete combustion<br/>2 HF + (phi-1) H2 -> T_FEE"]
-        FCT["FluorineChamberTemperature<br/>energy balance -> T_c"]
-        FCC["FCC: HF, H2, H, F equilibrium<br/>-> gamma, R, cp"]
-        FEEF --> FCT
-        FCT -- "trial T" --> FCC
-        FCC -- "composition" --> FCT
-    end
-
-    phi --> FEE
-    phi --> FEEF
-    CT --> NOZ
-    FCT --> NOZ
-    NOZ["OxNozzlePerf: Mach, mdot, v_e, p_e, T_e<br/>thrust, C_T, Isp (vacuum and sea level)"]
-
-    ITER["Iterater.py: table lookups, sensible and total enthalpy, MachSolve"]
-    TAB[("tables/*.csv")]
-    TAB --> ITER
-    ITER -.-> O2
-    ITER -.-> F2
-    ITER -.-> NOZ
+flowchart LR
+    G[/"Givens<br/>204 atm · H₂ 850 K · oxidizer 530 K<br/>φ = 1.317 · Rₜ 5.15 in · Rₑ 45.35 in"/] --> S1
+    S1["<b>1 · First enthalpy exchanger</b><br/>complete combustion<br/>→ upper-bound T"] --> S3
+    S3["<b>3 · Second enthalpy exchanger</b><br/>energy balance on the<br/>equilibrium products → T<sub>c</sub>"]
+    S3 -- "trial T" --> S2
+    S2["<b>2 · Combustion chamber</b><br/>atom balances + law of mass action<br/>→ composition, γ, R"] -- "composition" --> S3
+    S3 --> S4["<b>4 · Nozzle</b><br/>isentropic, frozen γ<br/>→ thrust, C<sub>T</sub>, I<sub>sp</sub>"]
 ```
+
+| Step | H₂/O₂ | H₂/F₂ |
+|---|---|---|
+| 1 · First enthalpy exchanger | `FEE` | `FEE_F` |
+| 2 · Combustion chamber | `OCC` (H₂O, H₂, H, OH) | `FCC` (HF, H₂, H, F) |
+| 3 · Second enthalpy exchanger | `ChamberTemperature` | `FluorineChamberTemperature` |
+| 4 · Nozzle | `OxNozzlePerf` | `OxNozzlePerf` |
+
+## Design point at a glance
+
+| | Parameter | H₂/O₂ | H₂/F₂ |
+|---|---|:-:|:-:|
+| **Inputs** | Chamber pressure | 204 atm | 204 atm |
+| | Equivalence ratio φ | 1.317 | 1.317 |
+| | Oxidizer/fuel mass ratio | 6.02 | 14.3 |
+| | Injection temperatures (H₂ / oxidizer) | 850 K / 530 K | 850 K / 530 K |
+| | Nozzle area ratio ε | 77.5 | 77.5 |
+| **Chamber** | Complete-combustion temperature | 4617 K | 7107 K |
+| | Equilibrium temperature T<sub>c</sub> | **3949 K** | **5190 K** |
+| | Mixture molar mass | 13.26 g/mol | 15.43 g/mol |
+| | γ (frozen) | 1.199 | 1.319 |
+| **Nozzle** | Mass flow | 457.9 kg/s | 445.7 kg/s |
+| | Exit Mach number | 4.70 | 5.70 |
+| | Vacuum thrust | 2.151 MN | 2.009 MN |
+| | Vacuum I<sub>sp</sub> | **478.8 s** | **459.5 s** |
+| | Sea-level I<sub>sp</sub> | 384.8 s | 362.8 s |
+
+For reference, the real RS-25 is rated at about 2.28 MN and 452 s in vacuum at 109% power. The model sits higher mainly because the givens inject the propellants warm and the nozzle has no losses.
+
+<div align="center">
+<img src="docs/composition.svg" alt="Equilibrium chamber mole fractions. H2/O2 at 3949 K: H2O 0.633, H2 0.240, H 0.050, OH 0.077. H2/F2 at 5190 K: HF 0.678, H2 0.082, H 0.158, F 0.082." width="100%">
+</div>
+
+The fluorine chamber runs 1240 K hotter, yet its specific impulse comes out lower. About a quarter of its gas is H and F atoms, and the nozzle model keeps the composition frozen, so the energy those atoms would release by recombining in the nozzle is never recovered. The fluorine result is therefore a lower bound; see [the write-up](docs/SSME_writeup.md#fluorine).
+
+## Validation
+
+| Check | Model | Reference |
+|---|---|---|
+| H₂/O₂ chamber temperature | 3949 K | 3881 K, Cantera equilibrium at the same inputs (the model leaves out O and O₂) |
+| H₂/O₂ mixture molar mass | 13.26 g/mol | 13.22 g/mol, Cantera |
+| H₂/F₂ chamber temperature | 5190 K | 5197.5 K, the same method run on NIST-JANAF data for every species |
+| H₂/O₂ vacuum I<sub>sp</sub> | 478.8 s | 452 s, RS-25 rating (real engine: cryogenic propellants, real nozzle losses) |
+
+`make test` also checks the physics directly on every run: atoms are conserved, both equilibrium constants match the Gibbs tables, both energy balances close to within 1 J/mol, dissociation lowers the temperature, and the thrust equations hold.
+
+## Quick start
+
+```bash
+git clone https://github.com/Carmeisel101/rs25-gone-fluorine.git
+cd rs25-gone-fluorine
+make setup     # creates .venv and installs requirements.txt
+make           # runs both engines and prints the results
+```
+
+| Command | What it runs |
+|---|---|
+| `make` | `SSMEMain.py`: both engines, chamber through nozzle, vacuum and sea level |
+| `make test` | Regression checks: saved results plus physics identities for both engines |
+| `make figures` | Redraws `docs/rs25-schematic.svg` and `docs/composition.svg` from the model |
+| `make clean` / `make distclean` | Removes `__pycache__`, and also `.venv` |
+| `make help` | Lists the targets |
+
+Without `make`: `pip install -r requirements.txt`, then `python SSMEMain.py`. Requires Python 3.11 or newer; numpy, pandas and scipy are the only dependencies.
+
+> [!NOTE]
+> The course tables cover H₂, O₂, H₂O, H, OH, F₂ and HF. The fluorine chamber also needs atomic fluorine, the Gibbs energy of HF, and hydrogen atoms above 5000 K, so those come from the [NIST-JANAF tables](https://janaf.nist.gov/). Six enthalpy entries in the course tables were typos that broke the slope set by c<sub>p</sub>, and have been corrected; the [write-up](docs/SSME_writeup.md#data) lists them.
+
+## Write-up
+
+[**docs/SSME_writeup.md**](docs/SSME_writeup.md) has the full derivation: propellant enthalpies with the real-gas correction, the equilibrium equations for both engines, the energy balances, the nozzle relations, and the results.
+
+## Repository layout
+
+```text
+rs25-gone-fluorine/
+├── SSMEMain.py        # givens, and the run of both engines
+├── exchanger.py       # enthalpy exchangers, chamber equilibria, nozzle
+├── Iterater.py        # thermo-table lookups, species enthalpies, Mach solver
+├── tables/            # thermo tables (course data + NIST-JANAF additions)
+├── tests/             # regression checks
+├── docs/              # write-up, README graphics and the script that draws them
+├── Makefile
+└── requirements.txt
+```
+
+## Acknowledgements
+
+Built from course data provided by Dr. Rodney Bowersox. Thermochemical data for atomic fluorine, HF Gibbs energies and high-temperature atomic hydrogen are from the NIST-JANAF Thermochemical Tables. The H₂/O₂ equilibrium was cross-checked with [Cantera](https://cantera.org/).
+
+## License
+
+[MIT](LICENSE) © 2022 Carlos Meisel

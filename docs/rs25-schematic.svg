@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 440" width="960" height="440" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>RS-25 thrust chamber and nozzle</title>
+  <desc>To-scale half-section of the RS-25 thrust chamber and bell nozzle used by the model: hydrogen at 850 K and oxidizer at 530 K enter at the injector, the chamber runs at 204 atm, the throat radius is 5.15 in and the exit radius 45.35 in (area ratio 77.5).</desc>
+  <style>
+    .bg      { fill: #ffffff; }
+    .ink     { fill: #1f2933; }
+    .muted   { fill: #52606d; }
+    .small   { font-size: 12px; }
+    .wall    { fill: none; stroke: #3e4c59; stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; }
+    .inj     { fill: #cbd2d9; stroke: #3e4c59; stroke-width: 1.5; }
+    .gas     { fill: url(#hot); }
+    .plume   { fill: url(#plume); }
+    .axis    { stroke: #9aa5b1; stroke-width: 1; stroke-dasharray: 10 4 2 4; }
+    .station { stroke: #9aa5b1; stroke-width: 1; stroke-dasharray: 3 4; }
+    .stbadge { fill: #1f2933; }
+    .sttxt   { fill: #ffffff; font-size: 12px; font-weight: 700; text-anchor: middle; }
+    .h2      { fill: none; stroke: #2680c2; stroke-width: 2.4; }
+    .ox      { fill: none; stroke: #c65d21; stroke-width: 2.4; }
+    .h2txt   { fill: #1f5f94; font-size: 13px; font-weight: 600; }
+    .oxtxt   { fill: #9a4210; font-size: 13px; font-weight: 600; }
+    .dim     { stroke: #52606d; stroke-width: 1; fill: none; }
+    .lbl     { fill: #1f2933; font-size: 13px; }
+    .lblb    { fill: #1f2933; font-size: 13px; font-weight: 600; }
+  </style>
+  <defs>
+    <linearGradient id="hot" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fbe3c4"/><stop offset="0.12" stop-color="#f6a46b"/>
+      <stop offset="0.2" stop-color="#f08a4b"/><stop offset="0.45" stop-color="#f9c79a"/>
+      <stop offset="1" stop-color="#fdf1e4"/>
+    </linearGradient>
+    <linearGradient id="plume" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#fde6cf" stop-opacity="0.9"/><stop offset="1" stop-color="#fde6cf" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2680c2"/></marker>
+    <marker id="aox" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#c65d21"/></marker>
+  </defs>
+  <rect class="bg" width="960" height="440"/>
+  <path class="plume" d="M644.1,63.3 C764.1,73.1 874.1,150 930,174 L930,266 C874.1,290 764.1,366.9 644.1,376.7 Z"/>
+  <path class="gas" d="M120,188.1 L170,188.1 C192,188.1 192,201.5 212,201.5 Q385.4,93.1 644.1,56.7 L644.1,383.3 Q385.4,346.9 212,238.5 C192,238.5 192,251.9 170,251.9 L120,251.9 Z"/>
+  <line class="axis" x1="60" y1="220" x2="940" y2="220"/>
+  <path class="wall" d="M120,188.1 L170,188.1 C192,188.1 192,201.5 212,201.5 Q385.4,93.1 644.1,56.7"/>
+  <path class="wall" d="M120,251.9 L170,251.9 C192,251.9 192,238.5 212,238.5 Q385.4,346.9 644.1,383.3"/>
+  <rect class="inj" x="108" y="182.1" width="12" height="75.7" rx="2"/>
+  <line class="station" x1="145.0" y1="34" x2="145.0" y2="400"/><circle class="stbadge" cx="145.0" cy="26" r="11"/><text class="sttxt" x="145.0" y="30">c</text><text class="muted small" x="145.0" y="416" text-anchor="middle">chamber</text>
+  <line class="station" x1="212.0" y1="34" x2="212.0" y2="400"/><circle class="stbadge" cx="212.0" cy="26" r="11"/><text class="sttxt" x="212.0" y="30">t</text><text class="muted small" x="212.0" y="416" text-anchor="middle">throat</text>
+  <line class="station" x1="644.1" y1="34" x2="644.1" y2="400"/><circle class="stbadge" cx="644.1" cy="26" r="11"/><text class="sttxt" x="644.1" y="30">e</text><text class="muted small" x="644.1" y="416" text-anchor="middle">exit</text>
+  <path class="h2" d="M24,168 L60,168 Q86,168 104,206" marker-end="url(#ah2)"/>
+  <text class="h2txt" x="20" y="158">H₂ · 850 K</text>
+  <path class="ox" d="M24,272 L60,272 Q86,272 104,234" marker-end="url(#aox)"/>
+  <text class="oxtxt" x="20" y="294">O₂ or F₂ · 530 K</text>
+  <text class="lblb" x="114" y="130.1">Chamber · 204 atm</text>
+  <text class="lbl" x="114" y="148.1">T<tspan baseline-shift="sub" font-size="10">c</tspan> 3949 K (O₂) · 5190 K (F₂)</text>
+  <path class="dim" d="M246.0,201.5 A34,34 0 0,0 240.8,183.4"/>
+  <text class="lbl" x="254.0" y="197.5">θ<tspan baseline-shift="sub" font-size="10">p</tspan> = 32°</text>
+  <line class="dim" x1="212" y1="242.5" x2="186" y2="291.9"/>
+  <text class="lbl" x="182" y="305.9" text-anchor="middle">R<tspan baseline-shift="sub" font-size="10">t</tspan> = 5.15 in</text>
+  <line class="dim" x1="658.1" y1="220" x2="658.1" y2="56.7"/>
+  <text class="lbl" x="664.1" y="138.4">R<tspan baseline-shift="sub" font-size="10">e</tspan> = 45.35 in</text>
+  <text class="lbl" x="664.1" y="156.4">ε = 77.5</text>
+  <text class="lblb" x="920" y="312" text-anchor="end">Vacuum I<tspan baseline-shift="sub" font-size="10">sp</tspan></text>
+  <text class="lbl" x="920" y="330" text-anchor="end">478.8 s (O₂) · 459.5 s (F₂)</text>
+</svg>

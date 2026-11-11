@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" width="960" height="330" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>Equilibrium chamber composition</title>
+  <desc>Mole fractions at the equilibrium chamber temperature. H2/O2 at 3949 K: H₂O 0.633, H₂ 0.240, H 0.050, OH 0.077. H2/F2 at 5190 K: HF 0.678, H₂ 0.082, H 0.158, F 0.082.</desc>
+  <style>
+    .surface { fill: #fcfcfb; }
+    .title   { fill: #0b0b0b; font-size: 16px; font-weight: 600; }
+    .ptitle  { fill: #0b0b0b; font-size: 14px; font-weight: 600; }
+    .psub, .cat { fill: #52514e; font-size: 13px; }
+    .tick    { fill: #52514e; font-size: 11px; }
+    .val     { fill: #0b0b0b; font-size: 12px; }
+    .grid    { stroke: #e6e5e0; stroke-width: 1; }
+    .s1      { fill: #2a78d6; }
+    .s2      { fill: #eb6834; }
+    @media (prefers-color-scheme: dark) {
+      .surface { fill: #1a1a19; }
+      .title, .ptitle, .val { fill: #f0efec; }
+      .psub, .cat, .tick { fill: #c3c2b7; }
+      .grid { stroke: #3a3a37; }
+      .s1 { fill: #3987e5; }
+      .s2 { fill: #d95926; }
+    }
+  </style>
+  <rect class="surface" width="960" height="330" rx="8"/>
+  <text class="title" x="30" y="32">Equilibrium chamber composition (mole fraction)</text>
+  <text class="ptitle" x="80" y="66">H₂/O₂</text>
+  <text class="psub" x="80" y="84">T<tspan baseline-shift="sub" font-size="10">c</tspan> = 3949 K</text>
+  <line class="grid" x1="80.0" y1="96" x2="80.0" y2="248"/>
+  <text class="tick" x="80.0" y="272" text-anchor="middle">0.0</text>
+  <line class="grid" x1="175.0" y1="96" x2="175.0" y2="248"/>
+  <text class="tick" x="175.0" y="272" text-anchor="middle">0.2</text>
+  <line class="grid" x1="270.0" y1="96" x2="270.0" y2="248"/>
+  <text class="tick" x="270.0" y="272" text-anchor="middle">0.4</text>
+  <line class="grid" x1="365.0" y1="96" x2="365.0" y2="248"/>
+  <text class="tick" x="365.0" y="272" text-anchor="middle">0.6</text>
+  <line class="grid" x1="460.0" y1="96" x2="460.0" y2="248"/>
+  <text class="tick" x="460.0" y="272" text-anchor="middle">0.8</text>
+  <text class="cat" x="70" y="114.0" text-anchor="end">H₂O</text>
+  <path class="s1" d="M80,96 H376.8 Q380.8,96 380.8,100 V118 Q380.8,122 376.8,122 H80 Z"><title>H₂/O₂: H₂O mole fraction 0.633</title></path>
+  <text class="val" x="388.8" y="114.0">0.633</text>
+  <text class="cat" x="70" y="156.0" text-anchor="end">H₂</text>
+  <path class="s1" d="M80,138 H189.8 Q193.8,138 193.8,142 V160 Q193.8,164 189.8,164 H80 Z"><title>H₂/O₂: H₂ mole fraction 0.240</title></path>
+  <text class="val" x="201.8" y="156.0">0.240</text>
+  <text class="cat" x="70" y="198.0" text-anchor="end">H</text>
+  <path class="s1" d="M80,180 H99.6 Q103.6,180 103.6,184 V202 Q103.6,206 99.6,206 H80 Z"><title>H₂/O₂: H mole fraction 0.050</title></path>
+  <text class="val" x="111.6" y="198.0">0.050</text>
+  <text class="cat" x="70" y="240.0" text-anchor="end">OH</text>
+  <path class="s1" d="M80,222 H112.8 Q116.8,222 116.8,226 V244 Q116.8,248 112.8,248 H80 Z"><title>H₂/O₂: OH mole fraction 0.077</title></path>
+  <text class="val" x="124.8" y="240.0">0.077</text>
+  <text class="ptitle" x="550" y="66">H₂/F₂</text>
+  <text class="psub" x="550" y="84">T<tspan baseline-shift="sub" font-size="10">c</tspan> = 5190 K</text>
+  <line class="grid" x1="550.0" y1="96" x2="550.0" y2="248"/>
+  <text class="tick" x="550.0" y="272" text-anchor="middle">0.0</text>
+  <line class="grid" x1="645.0" y1="96" x2="645.0" y2="248"/>
+  <text class="tick" x="645.0" y="272" text-anchor="middle">0.2</text>
+  <line class="grid" x1="740.0" y1="96" x2="740.0" y2="248"/>
+  <text class="tick" x="740.0" y="272" text-anchor="middle">0.4</text>
+  <line class="grid" x1="835.0" y1="96" x2="835.0" y2="248"/>
+  <text class="tick" x="835.0" y="272" text-anchor="middle">0.6</text>
+  <line class="grid" x1="930.0" y1="96" x2="930.0" y2="248"/>
+  <text class="tick" x="930.0" y="272" text-anchor="middle">0.8</text>
+  <text class="cat" x="540" y="114.0" text-anchor="end">HF</text>
+  <path class="s2" d="M550,96 H867.8 Q871.8,96 871.8,100 V118 Q871.8,122 867.8,122 H550 Z"><title>H₂/F₂: HF mole fraction 0.678</title></path>
+  <text class="val" x="879.8" y="114.0">0.678</text>
+  <text class="cat" x="540" y="156.0" text-anchor="end">H₂</text>
+  <path class="s2" d="M550,138 H585.0 Q589.0,138 589.0,142 V160 Q589.0,164 585.0,164 H550 Z"><title>H₂/F₂: H₂ mole fraction 0.082</title></path>
+  <text class="val" x="597.0" y="156.0">0.082</text>
+  <text class="cat" x="540" y="198.0" text-anchor="end">H</text>
+  <path class="s2" d="M550,180 H621.3 Q625.3,180 625.3,184 V202 Q625.3,206 621.3,206 H550 Z"><title>H₂/F₂: H mole fraction 0.158</title></path>
+  <text class="val" x="633.3" y="198.0">0.158</text>
+  <text class="cat" x="540" y="240.0" text-anchor="end">F</text>
+  <path class="s2" d="M550,222 H584.8 Q588.8,222 588.8,226 V244 Q588.8,248 584.8,248 H550 Z"><title>H₂/F₂: F mole fraction 0.082</title></path>
+  <text class="val" x="596.8" y="240.0">0.082</text>
+  <text class="tick" x="480.0" y="316" text-anchor="middle">Mole fraction X</text>
+</svg>
