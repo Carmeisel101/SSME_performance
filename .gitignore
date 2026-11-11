@@ -7,12 +7,3 @@ __pycache__/
 .idea/
 .vscode/
 .DS_Store
-
-# LaTeX build output (keep the .tex source and the .pdf)
-Report/*.aux
-Report/*.fdb_latexmk
-Report/*.fls
-Report/*.log
-Report/*.synctex.gz
-Report/*.toc
-Report/*.out

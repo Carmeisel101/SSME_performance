@@ -1,24 +1,36 @@
-# Space Shuttle Main Engine (SSME) perfomance model
+# Space Shuttle Main Engine (SSME) performance model
 
-This is a simple model of the Space Shuttle Main Engine (SSME) performance. It is based on the data from the Dr. Rodney Bowersox:
+A performance model of the Space Shuttle Main Engine, built from the course data of Dr. Rodney Bowersox. It computes the chamber temperature and equilibrium composition from the propellant energy balance, then the ideal nozzle performance (thrust, $C_{T}$, $I_{sp}$) in vacuum and at sea level. It runs two engines:
+
+- **H₂/O₂**, the SSME itself.
+- **H₂/F₂**, the same engine with fluorine as the oxidizer, at the same equivalence ratio, injection temperatures, chamber pressure and nozzle.
+
+The full write-up, with every equation and both sets of results, is in [docs/SSME_writeup.md](docs/SSME_writeup.md).
 
 <div align="center">
 
-
 | Combustion Chamber Data | |
 |--------------------------| ----|
-|Fuel|  Hydrogen |
-|Oxidizer| $O_{2}$ |
-|Fuel/Oxidizer Ratio $\phi$ | 0.166 |
-| Hydrogen Injection Temperature |  850 K |
-| Oxygen Injection Temperature |  530 K |
-| Combustion Chamber Pressure |  204 atm |
+| Fuel | Hydrogen |
+| Oxidizer | $O_{2}$ (and $F_{2}$ for the fluorine variant) |
+| Fuel/oxidizer mass ratio, H₂/O₂ | 0.166 |
+| Equivalence ratio $\phi$ (both engines) | 1.317 |
+| Hydrogen injection temperature | 850 K |
+| Oxidizer injection temperature | 530 K |
+| Combustion chamber pressure | 204 atm |
 
 | Nozzle Geometry | |
 |--------------------------| ----|
-| $R_{t}$ |  5.15 in |
-| $R_{e}$ |  45.35 in |
-| $\theta_{p}$ |  32.00 deg |
+| $R_{t}$ | 5.15 in |
+| $R_{e}$ | 45.35 in |
+| $\theta_{p}$ | 32.00 deg (not used by the ideal-nozzle model) |
+
+| Results | H₂/O₂ | H₂/F₂ |
+|---|---|---|
+| Chamber temperature | 3949 K | 5190 K |
+| Mass flow | 457.9 kg/s | 445.7 kg/s |
+| Vacuum $I_{sp}$ | 478.8 s | 459.5 s |
+| Sea-level $I_{sp}$ | 384.8 s | 362.8 s |
 
 </div>
 
@@ -34,9 +46,9 @@ make test    # regression checks
 
 
 ## Oxygen First Enthalpy Exchanger
-We begin with computing the equivalence ratio $\phi$ for the oxygen first enthalpy exchanger. The equivalence ratio is defined as the ratio of the mass of fuel to the mass of oxidizer. The mass of fuel is the mass of hydrogen, and the mass of oxidizer is the mass of oxygen. The mass of hydrogen is $\phi \frac{mol_{O_{2}}}{mol_{H_{2}}} = \Phi$
+We begin by computing the equivalence ratio $\phi$, the fuel/oxidizer ratio divided by its stoichiometric value. For $2H_{2} + O_{2} \rightarrow 2H_{2}O$ the moles of $H_{2}$ per mole of $O_{2}$ are $\Phi = (F/O)\,\hat{m}_{O_{2}}/\hat{m}_{H_{2}} = 2.635$, so $\phi = \Phi/2 = 1.317$ and the mixture is fuel-rich.
 
-From here we are to calculate the standard heat of formation by:
+Next we calculate the enthalpy of each injected propellant, including a real-gas correction for the high chamber pressure:
 
 <div align="center">
 
@@ -363,107 +375,38 @@ The fluorine chamber is much hotter, but a quarter of its gas is H and F atoms. 
 
 ## Code Flow
 
-
 ```mermaid
-    flowchart
-    A[Givens] --> B[Parameters]
-    B --> SSME
-    D -->|def| FCC
-    FCC1 --> |req| Request
-    Request --> |return| del_h_hat
-    phi --> FCC2
-    T_alg --> |req| Request
-    Request --> |return| T_alg
-    E -->|def| Comb
-    Gibbs --> |req| Request
-    Request --> |return| Gibbs
-    cpval --> |req| Request
-    Request --> |return| cpval
-    N --> |def| Nozzle
+flowchart TD
+    G["Givens: F/O, injection temperatures, p_c, nozzle radii"] --> phi["equivalence ratio phi"]
 
-
-    subgraph SSME[SSMEMain.py]
-    C[Read in Givens] --> phi["equivalence ratio"]
-    phi --> D[FCC]
-    D--> E[Comb Chamber]
-    E --> N[Nozzle]
-
-  
-    end
-    
-
-    subgraph FCC[FCC]
-    FCC1["h_(i)(InjectionTemp)"] 
-    b_hat["b_hat_table"]
-    del_h_hat["del_h_hat_(i)"]
-    b_hat --> del_h_hat
-    FCC2["mols_(i)"]
-    h_total["del_h_total"]
-    T_alg["T_algorithm"]
-
-    del_h_hat --> h_total
-    FCC2 --> h_total
-    h_total --> T_alg
-    end 
-
-    subgraph Iter["Iterater.py"]
-    Request["Request_(i) (input,output)"] 
-
-    Request --> |"(T,h)"|Iter1
-    Request --> |"(h,T)"|Iter2
-    Request --> |"(T,g)"|Iter3
-    Request --> |"(T,cp)"|Iter4
-    Request --> |"(T,S)"|Iter5
-    Iter1["(i)_tableH = (i)_table_f"]
-    Iter2["(i)_tableT"]
-    Iter3["(i)_tableg"]
-    Iter4["(i)_table_cp"]
-    Iter5["(i)_tableS"]
-
-    MachS["MachSolve"]
+    subgraph O2["H2/O2 engine (exchanger.py)"]
+        FEE["FEE: complete combustion<br/>2 H2O + (2phi-2) H2 -> T_FEE"]
+        CT["ChamberTemperature<br/>energy balance -> T_c"]
+        OCC["OCC: H2O, H2, H, OH equilibrium<br/>-> gamma, R, cp"]
+        FEE --> CT
+        CT -- "trial T" --> OCC
+        OCC -- "composition" --> CT
     end
 
-    subgraph Comb["Comb Chamber"]
-    Atom["Atom Balance"]
-    Gibbs["Gibbs Free Energy"]
-    gibbs_r["g_reaction"]
-    LMA["LawOfMassAction_df"]
-    cpval["cp_values_(i)"]
-    Gibbs --> gibbs_r
-    gibbs_r --> k_n["K_(n)"]
-    T_alg --> k_n
-
-    Atom --> eq["equations"]
-    eq --> sol["solution(s)"]
-    k_n --> eq
-    sol --> LMA
-    cpval --> LMA
-    LMA --> R["R"]
-    R --> cv["cv"]
-    cv --> gamma["gamma"]
+    subgraph F2["H2/F2 engine (exchanger.py)"]
+        FEEF["FEE_F: complete combustion<br/>2 HF + (phi-1) H2 -> T_FEE"]
+        FCT["FluorineChamberTemperature<br/>energy balance -> T_c"]
+        FCC["FCC: HF, H2, H, F equilibrium<br/>-> gamma, R, cp"]
+        FEEF --> FCT
+        FCT -- "trial T" --> FCC
+        FCC -- "composition" --> FCT
     end
 
-    subgraph Nozzle["Nozzle"]
-    A_r["Area Ratio"]
-    gam["gamma"]
-    gam --> Mach
-    A_r --> Mach
-    Mach -->|req| MachS
-    MachS --> |return|Mach
-    Mach --> mdot["mdot"]
-    Mach --> T_e["T_e"]
-    Mach --> p_e["p_e"]
-    Mach --> v_e["v_e"]
+    phi --> FEE
+    phi --> FEEF
+    CT --> NOZ
+    FCT --> NOZ
+    NOZ["OxNozzlePerf: Mach, mdot, v_e, p_e, T_e<br/>thrust, C_T, Isp (vacuum and sea level)"]
 
-    v_e --> Thrust["Thrust"]
-    mdot --> Thrust
-    p_e --> Thrust
-    c_T["c_T"]
-    Thrust --> c_T
-    Thrust --> Isp["Isp"]
-
-    end
-
-    subgraph Mach["mach"]
-    end
+    ITER["Iterater.py: table lookups, sensible and total enthalpy, MachSolve"]
+    TAB[("tables/*.csv")]
+    TAB --> ITER
+    ITER -.-> O2
+    ITER -.-> F2
+    ITER -.-> NOZ
 ```
