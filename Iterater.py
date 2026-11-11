@@ -488,7 +488,9 @@ def table_interp(filename, column, Temp):
     return float(np.interp(Temp, table['T'], table[column]))
 
 
-H_F_298 = {'H2O': -241845.0, 'H2': 0.0, 'H': 217977.0, 'OH': 38985.0, 'O2': 0.0}  # J/mol, from the tables
+# Enthalpy of formation at 298 K, J/mol, from the tables (HF: -64.8 kcal/mol; F: NIST-JANAF)
+H_F_298 = {'H2O': -241845.0, 'H2': 0.0, 'H': 217977.0, 'OH': 38985.0, 'O2': 0.0,
+           'HF': -64.8*4184, 'F': 79390.0, 'F2': 0.0}
 
 
 def sensible_enthalpy(species, Temp):
@@ -498,6 +500,8 @@ def sensible_enthalpy(species, Temp):
       H2O    : tabulated h_f column
       H      : constant cp (monatomic ideal gas)
       OH     : from its formation enthalpy, since dh_f(OH) = h_OH - (1/2)h_H2 - (1/2)h_O2
+      HF, F2 : tabulated H - H_298 (kcal/mol)
+      F      : tabulated H - H298 (J/mol, NIST-JANAF)
     '''
     if species == 'H2':
         return table_interp('Hydrogen_H2_table.csv', 'H*-H*_298', Temp)*4184
@@ -510,6 +514,12 @@ def sensible_enthalpy(species, Temp):
     if species == 'OH':
         return (table_interp('OH_table.csv', 'h_hat', Temp) - H_F_298['OH']
                 + 0.5*sensible_enthalpy('H2', Temp) + 0.5*sensible_enthalpy('O2', Temp))
+    if species == 'HF':
+        return table_interp('HydrogenFluoride_HF_table.csv', 'H*-H*_298', Temp)*4184
+    if species == 'F2':
+        return table_interp('Fluorine_F2_table.csv', 'H*-H*_298', Temp)*4184
+    if species == 'F':
+        return table_interp('F_table.csv', 'H-H298', Temp)
     raise ValueError(f'no enthalpy data for {species}')
 
 

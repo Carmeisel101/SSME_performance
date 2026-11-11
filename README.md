@@ -316,6 +316,51 @@ The thrust comes from a momentum balance on a control volume around the engine, 
 For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 
 
+## Fluorine
+
+The same engine is run with fluorine in place of oxygen, at the same equivalence ratio, injection temperatures (H₂ 850 K, F₂ 530 K), chamber pressure and nozzle. The stoichiometric reaction is $H_{2} + F_{2} \rightarrow 2HF$, so $\phi = 1.317$ moles of $H_{2}$ per mole of $F_{2}$, an oxidizer/fuel mass ratio of 14.3.
+
+**First enthalpy exchanger (`FEE_F`).** Complete combustion, per mole of $F_{2}$:
+
+<div align="center">
+
+$F_{2} + \phi H_{2} \rightarrow 2HF + (\phi-1)H_{2}$
+
+$2\left[\hat{h}_{HF}(T_{FEE}) - \hat{h}_{HF}(298)\right] + (\phi-1)\left[\hat{h}_{H_{2}}(T_{FEE}) - \hat{h}_{H_{2}}(298)\right] = \phi\Delta\hat{h}_{H_{2}} + \Delta\hat{h}_{F_{2}} - 2\Delta\hat{h}_{f,HF}^{298}$
+
+</div>
+
+**Combustion chamber (`FCC`).** At these temperatures both $H_{2}$ and $HF$ dissociate, so the products are $HF$, $H_{2}$, $H$ and $F$:
+
+<div align="center">
+
+$F: \quad 2 = N_{HF} + N_{F}$
+
+$H: \quad 2\phi = N_{HF} + 2N_{H_{2}} + N_{H}$
+
+$K_{H_{2}\rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}, \qquad K_{HF \rightarrow H+F} = \frac{N_{H}N_{F}}{N_{HF} N_{Total}}$
+
+</div>
+
+$F_{2}$ is left out of the products; at the chamber conditions $X_{F_{2}} \approx 10^{-5}$.
+
+**Chamber temperature (`FluorineChamberTemperature`).** As for oxygen, `brentq` finds the temperature at which the equilibrium products carry the propellant enthalpy.
+
+| | H₂/O₂ | H₂/F₂ |
+|---|---|---|
+| Complete-combustion $T_{FEE}$ | 4617 K | 7107 K |
+| Chamber $T_{c}$ | 3949 K | 5190 K |
+| Mole fractions | H₂O .633, H₂ .240, H .050, OH .078 | HF .678, H₂ .082, H .159, F .082 |
+| Molar mass | 13.26 g/mol | 15.43 g/mol |
+| $\gamma$ (frozen) | 1.199 | 1.319 |
+| Mass flow | 457.9 kg/s | 445.7 kg/s |
+| Vacuum $I_{sp}$ | 478.8 s | 459.5 s |
+| Sea-level $I_{sp}$ | 384.8 s | 362.8 s |
+
+The fluorine chamber is much hotter, but a quarter of its gas is H and F atoms. The nozzle model keeps the chamber composition frozen, so the energy stored in those atoms is never released by recombination in the nozzle and the fluorine $I_{sp}$ comes out below the oxygen one. A shifting-equilibrium nozzle would recover much of it; this frozen-flow result is a lower bound.
+
+**Data.** The course tables have no data for atomic fluorine and no Gibbs energy for HF, and the H table stopped at 5000 K. These came from the [NIST-JANAF tables](https://janaf.nist.gov/): `tables/F_table.csv` (F atom), the `g_hat` column in `tables/HydrogenFluoride_HF_table.csv`, and the 5100–6000 K rows of `tables/H_table.csv`. A calculation using JANAF for every species gives $T_{c}$ = 5197.5 K and the same mole fractions to within 0.001. Six $H^{*}-H^{*}_{298}$ entries in the course tables were typos that broke the slope set by $c_{p}$ and were corrected: H₂ at 1900 and 2400 K, F₂ at 1700 and 4500 K, and HF at 3400 and 3700 K (the corrected HF values match JANAF to 0.002 kJ/mol).
+
 ## Code Flow
 
 

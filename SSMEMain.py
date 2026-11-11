@@ -43,9 +43,31 @@ if __name__ == '__main__':
     print('Ox specific impulse (sea level) = ', I_spOx_SL, 's')
 
 
-    print('Flourine Problem')
-    b_hat_table, FEE_T_flourine = FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp)
+    print('Fluorine Problem')
+    # Same injection temperatures and equivalence ratio, with F2 in place of O2:
+    # stoichiometric H2 + F2 -> 2HF, so phi is also the mol H2 per mol F2
+    F2_inject_temp = Ox_inject_temp
+    FEE_T_F, del_h_total_F, h_reactants_F = FEE_F(Hydr_inject_temp, p_starting, F2_inject_temp, phi)
+    print('Oxidizer/fuel mass ratio (Fluorine) = ', MOLAR_MASS['F2']/(phi*MOLAR_MASS['H2']))
+    print('Temperature of the first enthalpy exchanger (Fluorine, complete combustion) = ', FEE_T_F, 'K')
 
-    print('Temperature of the first enthalpy exchanger (Flourine) = ', FEE_T_flourine, 'K')
+    T_c_F = FluorineChamberTemperature(FEE_T_F, p_starting, phi, h_reactants_F)
+    print('Chamber temperature (Fluorine, equilibrium, with dissociation) = ', T_c_F, 'K')
 
-    FCC(FEE_T_flourine)
+    gamma_F, R_F, cp_total_F, cv_F, LawOfMassAction_df_F = FCC(T_c_F, p_starting, phi)
+    print('gamma (Fluorine) = ', gamma_F)
+
+    m_dotF, v_eF, p_eF, ThrustF, c_TF, I_spF, T_e_F, M_eF = OxNozzlePerf(ThroatRadius, ExitRadius, gamma_F, T_c_F, R_F, p_starting)
+    _, _, _, ThrustF_SL, c_TF_SL, I_spF_SL, _, _ = OxNozzlePerf(ThroatRadius, ExitRadius, gamma_F, T_c_F, R_F, p_starting, p_sea_level)
+
+    print('F exit Mach number = ', M_eF)
+    print('F mass flow rate = ', m_dotF, 'kg/s')
+    print('F exit velocity = ', v_eF, 'm/s')
+    print('F exit pressure = ', p_eF, 'Pa')
+    print('F exit temperature = ', T_e_F, 'K')
+    print('F thrust (vacuum) = ', ThrustF, 'N')
+    print('F thrust coefficient (vacuum) = ', c_TF)
+    print('F specific impulse (vacuum) = ', I_spF, 's')
+    print('F thrust (sea level) = ', ThrustF_SL, 'N')
+    print('F thrust coefficient (sea level) = ', c_TF_SL)
+    print('F specific impulse (sea level) = ', I_spF_SL, 's')

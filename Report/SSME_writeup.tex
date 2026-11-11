@@ -422,7 +422,72 @@
 
 
 
-    \appendix{}
+        \section{Fluorine}
+    \label{sec:fluorine}
+
+    The same engine is run with fluorine in place of oxygen, at the same equivalence ratio, injection temperatures
+    ($H_{2}$ at 850 K, $F_{2}$ at 530 K), chamber pressure and nozzle. The stoichiometric reaction is
+    $H_{2} + F_{2} \rightarrow 2HF$, so $\phi = 1.317$ moles of $H_{2}$ per mole of $F_{2}$, an oxidizer/fuel mass ratio of 14.3.
+
+    \subsection{First Enthalpy Exchanger}
+
+    Complete combustion, per mole of $F_{2}$, is
+    \begin{equation}
+        F_{2} + \phi H_{2} \rightarrow 2HF + (\phi - 1)H_{2}
+    \end{equation}
+    and $T_{FEE}$ follows from
+    \begin{equation}
+        2\left[\hat{h}_{HF}(T_{FEE}) - \hat{h}_{HF}(298)\right] + (\phi-1)\left[\hat{h}_{H_{2}}(T_{FEE}) - \hat{h}_{H_{2}}(298)\right]
+        = \phi\Delta\hat{h}_{H_{2}} + \Delta\hat{h}_{F_{2}} - 2\Delta\hat{h}^{298}_{f,HF}
+    \end{equation}
+    which gives $T_{FEE} \approx 7107$ K.
+
+    \subsection{Combustion Chamber}
+
+    Both $H_{2}$ and $HF$ dissociate at these temperatures, so the products are $HF$, $H_{2}$, $H$ and $F$:
+    \begin{equation}
+        F: \quad 2 = N_{HF} + N_{F}, \qquad H: \quad 2\phi = N_{HF} + 2N_{H_{2}} + N_{H}
+    \end{equation}
+    \begin{equation}
+        K_{H_{2} \rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}, \qquad
+        K_{HF \rightarrow H + F} = \frac{N_{H} N_{F}}{N_{HF} N_{Total}}
+    \end{equation}
+    with $K_{n} = (p/p^{*})^{-1} e^{-\Delta \hat{g}/\hat{R}T}$ for both reactions. $F_{2}$ is left out of the products;
+    at the chamber conditions $X_{F_{2}} \approx 10^{-5}$. The system is solved in $\ln N_{(i)}$ as for oxygen, and the
+    chamber temperature again comes from the energy balance on the equilibrium products.
+
+    \subsection{Results}
+
+    \begin{center}
+        \begin{tabular}{|l|c|c|}
+            \hline
+             & $H_{2}/O_{2}$ & $H_{2}/F_{2}$ \\
+            \hline
+            $T_{FEE}$ & 4617 K & 7107 K \\
+            $T_{c}$ & 3949 K & 5190 K \\
+            Molar mass & 13.26 g/mol & 15.43 g/mol \\
+            $\gamma$ (frozen) & 1.199 & 1.319 \\
+            $\dot{m}$ & 457.9 kg/s & 445.7 kg/s \\
+            $I_{sp}$, vacuum & 478.8 s & 459.5 s \\
+            $I_{sp}$, sea level & 384.8 s & 362.8 s \\
+            \hline
+        \end{tabular}
+    \end{center}
+
+    The equilibrium mole fractions are $X_{HF} = 0.678$, $X_{H_{2}} = 0.082$, $X_{H} = 0.159$ and $X_{F} = 0.082$.
+    About a quarter of the gas is atoms. Because the nozzle model keeps the chamber composition frozen, the energy stored
+    in those atoms is never released by recombination, and the fluorine $I_{sp}$ comes out below the oxygen one even though
+    the chamber is 1240 K hotter. A shifting-equilibrium nozzle would recover much of that energy, so this result is a lower bound.
+
+    \subsection{Data}
+
+    The course tables have no data for atomic fluorine and no Gibbs energy for $HF$, and the $H$ table stopped at 5000 K.
+    These were taken from the NIST-JANAF thermochemical tables: the $F$ atom table, the $\Delta \hat{g}_{f}$ column for $HF$,
+    and the 5100--6000 K rows for $H$. A calculation that uses JANAF for every species gives $T_{c} = 5197.5$ K and the same
+    mole fractions to within 0.001. Six $H^{*}-H^{*}_{298}$ entries in the course tables were typos that broke the slope set by
+    $c_{p}$ and were corrected: $H_{2}$ at 1900 and 2400 K, $F_{2}$ at 1700 and 4500 K, and $HF$ at 3400 and 3700 K.
+
+\appendix{}
     \section{Code listings}
     \subsection{SSMEMain.py}
     \lstinputlisting[language=python]{../SSMEMain.py}

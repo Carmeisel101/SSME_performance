@@ -5,7 +5,8 @@ import numpy as np
 from scipy.optimize import brentq
 
 # Molar masses in g/mol, used everywhere (SSMEMain, FEE, OCC)
-MOLAR_MASS = {'H2': 2.01588, 'O2': 31.9988, 'H2O': 18.01528, 'OH': 17.00734, 'H': 1.00794}
+MOLAR_MASS = {'H2': 2.01588, 'O2': 31.9988, 'H2O': 18.01528, 'OH': 17.00734, 'H': 1.00794,
+              'F2': 37.99681, 'HF': 20.00634, 'F': 18.99840}
 R_HAT = 8.314  # J/mol-K
 
 
@@ -52,12 +53,25 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     return T, del_h_total, del_h2_hat, b_hat_table, h_reactants
 
 
+def EquilibriumTemperature(T_upper, h_reactants, products):
+    '''
+    Second enthalpy exchanger: the temperature at which the equilibrium products carry
+    the same enthalpy as the injected propellants. Dissociation absorbs energy, so the
+    answer lies below the complete-combustion estimate T_upper.
+    :param T_upper: complete-combustion temperature in K (upper bracket)
+    :param h_reactants: enthalpy of the injected propellants, J per mol oxidizer
+    :param products: function T -> {species: mol per mol oxidizer} at equilibrium
+    :return: temperature in K
+    '''
+    def energy_residual(T):
+        return sum(n*total_enthalpy(sp, T) for sp, n in products(T).items()) - h_reactants
+
+    return brentq(energy_residual, 2000, T_upper, xtol=1e-6)
+
+
 def ChamberTemperature(FEE_T, p_starting, FO_ratio, h_reactants):
     '''
-    Adiabatic chamber temperature with dissociation (the second enthalpy exchanger).
-    Finds the T at which the equilibrium products from OCC carry the same enthalpy
-    as the injected propellants. Dissociation absorbs energy, so the answer lies
-    below the complete-combustion estimate FEE_T.
+    Adiabatic chamber temperature of the H2/O2 chamber, with dissociation
     :param FEE_T: complete-combustion temperature from FEE in K (upper bracket)
     :param p_starting: chamber pressure in Pa
     :param FO_ratio: fuel to oxidizer mass ratio
@@ -67,13 +81,12 @@ def ChamberTemperature(FEE_T, p_starting, FO_ratio, h_reactants):
     l = MOLAR_MASS['H2']/(FO_ratio*MOLAR_MASS['O2'])  # mol O2 per mol H2, as in OCC
     species = ['H2O', 'H2', 'H', 'OH']                 # order of OCC's mole table
 
-    def energy_residual(T):
+    def products(T):
         mols = OCC(T, p_starting, FO_ratio)[4]['mols'][0:4]
         # OCC works per mol H2; dividing by l puts the products per mol O2
-        h_products = sum(float(n)/l*total_enthalpy(sp, T) for sp, n in zip(species, mols))
-        return h_products - h_reactants
+        return {sp: float(n)/l for sp, n in zip(species, mols)}
 
-    return brentq(energy_residual, 2000, FEE_T, xtol=1e-6)
+    return EquilibriumTemperature(FEE_T, h_reactants, products)
 
 def OCC(FEE_T, p_starting, FO_ratio):
     '''
@@ -197,44 +210,52 @@ def OCC(FEE_T, p_starting, FO_ratio):
 
     return gamma, R, cp_total, cv, LawOfMassAction_df
 
-def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
+def FEE_F(Hydr_inject_temp, p_starting, F2_inject_temp, phi):
     '''
-    This is a function that returns the calculations of the fuel enthalpy exchanger - flourine
-    :param phi the equivalence ratio
-    :param p_starting combustion pressure in Pa
-    :param del_h2_hat heat of formation of H2 from FEE - Oxygen
-    :param b_hat_table Van der Waals table of constants
-    :param Ox_inject_temp: Oxidizer injection temperature in K
-    :return T the temperature of the FEE in K
-    :return b_hat_table the Van der Waals table of constants - edited
+    First enthalpy exchanger for the H2/F2 chamber (same equivalence ratio as the oxygen case)
+    :param Hydr_inject_temp: temperature of hydrogen injection in K
+    :param p_starting: chamber pressure in Pa
+    :param F2_inject_temp: temperature of fluorine injection in K
+    :param phi: equivalence ratio; stoichiometric is H2 + F2 -> 2HF, so phi = mol H2 per mol F2
+    :return T: complete-combustion (no dissociation) temperature in K
+    :return del_h_total: enthalpy available to heat the products, J per mol F2
+    :return h_reactants: enthalpy of the injected propellants, J per mol F2
     '''
+    b_hat_h2 = 0.0266   # Van der Waals co-volume, L/mol
+    b_hat_f2 = 0.02896
 
-    b_hat_table = pd.concat([b_hat_table,
-                             pd.DataFrame({'substance': ['F2', 'HF'], 'b_hat': [0.02896, 0.0739]})],
-                            ignore_index=True)
+    del_h2_hat = h2_tableH(Hydr_inject_temp) + b_hat_h2*(p_starting - 101325)/1000
+    del_f2_hat = sensible_enthalpy('F2', F2_inject_temp) + b_hat_f2*(p_starting - 101325)/1000
+    h_reactants = phi*del_h2_hat + del_f2_hat
 
-    b_hat_f2 = b_hat_table['b_hat'][3]
-    F2_inject_temp = Ox_inject_temp
+    # Complete combustion, per mole of F2: F2 + phi H2 -> 2 HF + (phi - 1) H2
+    del_h_total = h_reactants - 2*H_F_298['HF']
 
-    del_f2_hat = f2_tableH(F2_inject_temp) + b_hat_f2*(p_starting - 101325)/1000
-    del_hf_hat = abs(hf_tableH(298))
-    del_h_total = phi*del_h2_hat + del_f2_hat
-    del_h_total = del_h_total + del_hf_hat
+    def energy_residual(T):
+        return 2*sensible_enthalpy('HF', T) + (phi - 1)*sensible_enthalpy('H2', T) - del_h_total
 
+    T = brentq(energy_residual, 300, 9900)
 
-    r = phi - 1
-    q = 1
-
-    r_perc = r/(r+q)
-    q_perc = 1-r_perc
-
-    T_h2 = h2_tableT(del_h_total)
-    T_hf = hf_tableT(q_perc*del_h_total)
-
-    T = (T_hf + T_h2) / 2
+    return T, del_h_total, h_reactants
 
 
-    return b_hat_table, T
+def FluorineChamberTemperature(FEE_T, p_starting, phi, h_reactants):
+    '''
+    Adiabatic chamber temperature of the H2/F2 chamber, with dissociation
+    :param FEE_T: complete-combustion temperature from FEE_F in K
+    :param p_starting: chamber pressure in Pa
+    :param phi: equivalence ratio (mol H2 per mol F2)
+    :param h_reactants: enthalpy of the injected propellants, J per mol F2
+    :return T_c: chamber temperature in K
+    '''
+    species = ['HF', 'H2', 'H', 'F']   # order of FCC's mole table
+
+    def products(T):
+        mols = FCC(T, p_starting, phi)[4]['mols'][0:4]
+        return {sp: float(n) for sp, n in zip(species, mols)}
+
+    # the H and F tables stop at 6000 K
+    return EquilibriumTemperature(min(FEE_T, 6000), h_reactants, products)
 
 def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting, p_ambient=0.0):
     '''
@@ -278,41 +299,68 @@ def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting, p_ambien
 
     return m_dot, v_e, p_e, Thrust, c_T, I_sp, T_e, M_e
 
-def FCC(FEE_F):
+def FCC(T, p_starting, phi):
     '''
-    This is a function that returns the performance of the flourine combustion chamber
-    :return:
+    Equilibrium composition and gas properties of the H2/F2 chamber
+    Products per mole of F2 fed: F2 + phi H2 -> N_HF HF + N_H2 H2 + N_H H + N_F F
+      F atoms:  N_HF + N_F              = 2
+      H atoms:  N_HF + 2N_H2 + N_H      = 2 phi
+      H2 -> 2H:     N_H^2     / (N_H2 N_total) = K_n
+      HF -> H + F:  N_H N_F   / (N_HF N_total) = K_n
+    F2 is left out of the products: it is negligible in a fuel-rich chamber at these temperatures.
+    :param T: temperature in K
+    :param p_starting: chamber pressure in Pa
+    :param phi: equivalence ratio (mol H2 per mol F2)
+    :return gamma, R (kJ/kg-K), cp_total (kJ/kg-K), cv, LawOfMassAction_df
     '''
+    p_ratio = p_starting/101325
+    g_f_h = h_table_g(T)
+    g_f_h2 = h2_table_g(T)
+    g_f_f = table_interp('F_table.csv', 'g_hat', T)
+    g_f_hf = table_interp('HydrogenFluoride_HF_table.csv', 'g_hat', T)
 
+    # Gibbs free energy of reaction, products minus reactants; both reactions have sigma = +1
+    k_h2 = p_ratio**-1*np.exp(-(2*g_f_h - g_f_h2)/(R_HAT*T))       # H2 -> 2H
+    k_hf = p_ratio**-1*np.exp(-(g_f_h + g_f_f - g_f_hf)/(R_HAT*T))  # HF -> H + F
 
-    # The chemical equation is H2 +F2-> 2HF
-    molfrac_h2_react = 1
-    molfrac_f2_react = 1
-    molfrac_hf_react = 0
-    molfrac_h2_prod = 0
-    molfrac_f2_prod = 0
-    molfrac_hf_prod = 2
+    def residuals(log_n):
+        n_hf, n_h2, n_h, n_f = np.exp(log_n)
+        n_tot = n_hf + n_h2 + n_h + n_f
+        return [n_hf + n_f - 2,
+                n_hf + 2*n_h2 + n_h - 2*phi,
+                np.log(n_h**2/(n_h2*n_tot)) - np.log(k_h2),
+                np.log(n_h*n_f/(n_hf*n_tot)) - np.log(k_hf)]
 
+    # start from complete combustion with a little dissociation
+    guess = np.log([2, phi - 1, 0.01, 0.01])
+    log_n, info, ier, msg = fsolve(residuals, guess, full_output=True, xtol=1e-12)
+    if ier != 1 or max(abs(r) for r in residuals(log_n)) > 1e-9:
+        raise RuntimeError(f'FCC equilibrium solve did not converge: {msg}')
 
-    molfrac_h2_total = molfrac_h2_react - molfrac_h2_prod
-    molfrac_f2_total = molfrac_f2_react - molfrac_f2_prod
-    molfrac_hf_total = molfrac_hf_react - molfrac_hf_prod
-    sigma_nu = molfrac_hf_total + molfrac_h2_total + molfrac_f2_total
-    # print('sigma_nu = ', sigma_nu)
+    N_hf, N_h2, N_h, N_f = (float(n) for n in np.exp(log_n))
+    N_total = N_hf + N_h2 + N_h + N_f
 
-    # Gibbs free energy of formation of H2, F2, and HF
-    del_h_h2 = h2_tableH(FEE_F)
-    del_h_f2 = f2_tableH(FEE_F)
-    del_h_hf = hf_tableH(FEE_F)
+    molar_masses = np.array([MOLAR_MASS['HF'], MOLAR_MASS['H2'], MOLAR_MASS['H'], MOLAR_MASS['F']])
+    mols = np.array([N_hf, N_h2, N_h, N_f])
+    X = mols/N_total
+    m_hat_total = float(np.sum(X*molar_masses))   # mixture molar mass, g/mol
+    Y = X*molar_masses/m_hat_total                # mass fractions
 
-    s_h2 = h2_tableS(FEE_F)
-    s_f2 = f2_tableS(FEE_F)
-    s_hf = hf_tableS(FEE_F)
+    cp_hats = np.array([table_interp('HydrogenFluoride_HF_table.csv', 'c_p', T)*4.184,   # cal -> J
+                        h2_table_cp(T),
+                        h_table_cp(T),
+                        table_interp('F_table.csv', 'cp_hat', T)])
+    cps = cp_hats/molar_masses                    # kJ/kg-K
+    cp_total = float(np.sum(Y*cps))
 
-    # Gibbs
-    del_g_h2 = del_h_h2 - FEE_F*s_h2
-    del_g_f2 = del_h_f2 - FEE_F*s_f2
-    del_g_hf = del_h_hf - FEE_F*s_hf
+    LawOfMassAction_df = pd.DataFrame({'substance': ['N_HF', 'N_H2', 'N_H', 'N_F', 'Total'],
+                                       'mols': list(mols) + [N_total],
+                                       'X_(i)': list(X) + [1.0],
+                                       'Y_(i)': list(Y) + [1.0],
+                                       'cp': list(cps) + [cp_total]})
 
-    del_g_total = -del_g_f2 - del_g_h2 + del_g_hf
-    print('del_g_total = ', del_g_total)
+    R = R_HAT/m_hat_total
+    cv = cp_total - R
+    gamma = cp_total/cv
+
+    return gamma, R, cp_total, cv, LawOfMassAction_df
