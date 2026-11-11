@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from sympy import Eq, var, solve, diff
 from scipy.optimize import fsolve
-import matplotlib.pyplot as plt
+
+# Thermo tables live next to this file, so the code runs from any working directory
+TABLES = Path(__file__).resolve().parent / 'tables'
 
 
 def h2_tableH(Temp):
@@ -10,7 +13,7 @@ def h2_tableH(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+    h2_table = pd.read_csv(TABLES / 'Hydrogen_H2_table.csv')
 
     idx = (h2_table['T']-Temp).abs().idxmin()
     T_cloest = h2_table['T'][idx]
@@ -32,7 +35,7 @@ def f2_tableH(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    f2_table = pd.read_csv('./tables/Fluorine_F2_table.csv')
+    f2_table = pd.read_csv(TABLES / 'Fluorine_F2_table.csv')
 
     idx = (f2_table['T']-Temp).abs().idxmin()
     T_cloest = f2_table['T'][idx]
@@ -54,7 +57,7 @@ def o2_tableH(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    o2_table = pd.read_csv('./tables/o2_table.csv')
+    o2_table = pd.read_csv(TABLES / 'o2_table.csv')
 
     idx = (o2_table['T']-Temp).abs().idxmin()
     T_cloest = o2_table['T'][idx]
@@ -76,7 +79,7 @@ def hf_tableH(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    hf_table = pd.read_csv('./tables/HydrogenFluoride_HF_table.csv')
+    hf_table = pd.read_csv(TABLES / 'HydrogenFluoride_HF_table.csv')
 
     idx = (hf_table['T']-Temp).abs().idxmin()
     T_cloest = hf_table['T'][idx]
@@ -98,7 +101,7 @@ def h2o_table_f(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+    h2o_table = pd.read_csv(TABLES / 'H2O_table.csv')
 
     idx = (h2o_table['T']-Temp).abs().idxmin()
     T_cloest = h2o_table['T'][idx]
@@ -119,7 +122,7 @@ def oh_table_f(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    oh_table = pd.read_csv('./tables/OH_table.csv')
+    oh_table = pd.read_csv(TABLES / 'OH_table.csv')
 
     idx = (oh_table['T']-Temp).abs().idxmin()
     T_cloest = oh_table['T'][idx]
@@ -140,7 +143,7 @@ def h_table_f(Temp):
     :param Temp: temperature in K
     :return h_hat: enthalpy in J/mol also known as heat of formation
     '''
-    h_table = pd.read_csv('./tables/H_table.csv')
+    h_table = pd.read_csv(TABLES / 'H_table.csv')
 
     idx = (h_table['T']-Temp).abs().idxmin()
     T_cloest = h_table['T'][idx]
@@ -161,7 +164,7 @@ def h2o_tableT(h_hat):
     :param h_hat: enthalpy in J/mol also known as heat of formation
     :return Temp: temperature in K
     '''
-    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+    h2o_table = pd.read_csv(TABLES / 'H2O_table.csv')
 
     idx = (h2o_table['h_f']-h_hat).abs().idxmin()
     h_hat_cloest = h2o_table['h_f'][idx]
@@ -182,7 +185,7 @@ def h2_tableT(h_hat):
     :param h_hat: enthalpy in J/mol also known as heat of formation
     :return Temp: temperature in K
     '''
-    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+    h2_table = pd.read_csv(TABLES / 'Hydrogen_H2_table.csv')
     h_hat = h_hat/4184
     idx = (h2_table['H*-H*_298']-h_hat).abs().idxmin()
     h_hat_cloest = h2_table['H*-H*_298'][idx]
@@ -203,7 +206,7 @@ def hf_tableT(h_hat):
     :param h_hat: enthalpy in J/mol also known as heat of formation
     :return Temp: temperature in K
     '''
-    f2_table = pd.read_csv('./tables/HydrogenFluoride_HF_table.csv')
+    f2_table = pd.read_csv(TABLES / 'HydrogenFluoride_HF_table.csv')
     h_hat = h_hat/4184
     idx = (f2_table['H*-H*_298']-h_hat).abs().idxmin()
     h_hat_cloest = f2_table['H*-H*_298'][idx]
@@ -225,7 +228,7 @@ def oh_table_g(Temp):
     :param Temp: temperature in K
     :return g_hat: Gibbs free energy in J/mol
     '''
-    oh_table = pd.read_csv('./tables/OH_table.csv')
+    oh_table = pd.read_csv(TABLES / 'OH_table.csv')
 
     idx = (oh_table['T']-Temp).abs().idxmin()
     T_cloest = oh_table['T'][idx]
@@ -246,7 +249,7 @@ def h_table_g(Temp):
     :param Temp: temperature in K
     :return g_hat: Gibbs free energy in J/mol
     '''
-    h_table = pd.read_csv('./tables/H_table.csv')
+    h_table = pd.read_csv(TABLES / 'H_table.csv')
 
     idx = (h_table['T']-Temp).abs().idxmin()
     T_cloest = h_table['T'][idx]
@@ -267,7 +270,7 @@ def h2o_table_g(Temp):
     :param Temp: temperature in K
     :return g_hat: Gibbs free energy in J/mol
     '''
-    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+    h2o_table = pd.read_csv(TABLES / 'H2O_table.csv')
 
     idx = (h2o_table['T']-Temp).abs().idxmin()
     T_cloest = h2o_table['T'][idx]
@@ -288,7 +291,7 @@ def h2_table_g(Temp):
     :param Temp: temperature in K
     :return g_hat: Gibbs free energy in J/mol
     '''
-    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+    h2_table = pd.read_csv(TABLES / 'Hydrogen_H2_table.csv')
 
     idx = (h2_table['T']-Temp).abs().idxmin()
     T_cloest = h2_table['T'][idx]
@@ -309,7 +312,7 @@ def h2o_table_cp(Temp):
     :param Temp: temperature in K
     :return cp_hat: heat capacity in J/mol-K
     '''
-    h2o_table = pd.read_csv('./tables/H2O_table.csv')
+    h2o_table = pd.read_csv(TABLES / 'H2O_table.csv')
 
     idx = (h2o_table['T']-Temp).abs().idxmin()
     T_cloest = h2o_table['T'][idx]
@@ -330,7 +333,7 @@ def h2_table_cp(Temp):
     :param Temp: temperature in K
     :return cp_hat: heat capacity in J/mol-K
     '''
-    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+    h2_table = pd.read_csv(TABLES / 'Hydrogen_H2_table.csv')
 
     idx = (h2_table['T']-Temp).abs().idxmin()
     T_cloest = h2_table['T'][idx]
@@ -351,7 +354,7 @@ def oh_table_cp(Temp):
     :param Temp: temperature in K
     :return cp_hat: heat capacity in J/mol-K
     '''
-    oh_table = pd.read_csv('./tables/OH_table.csv')
+    oh_table = pd.read_csv(TABLES / 'OH_table.csv')
 
     idx = (oh_table['T']-Temp).abs().idxmin()
     T_cloest = oh_table['T'][idx]
@@ -372,7 +375,7 @@ def h_table_cp(Temp):
     :param Temp: temperature in K
     :return cp_hat: heat capacity in J/mol-K
     '''
-    h_table = pd.read_csv('./tables/H_table.csv')
+    h_table = pd.read_csv(TABLES / 'H_table.csv')
 
     idx = (h_table['T']-Temp).abs().idxmin()
     T_cloest = h_table['T'][idx]
@@ -399,9 +402,7 @@ def MachSolve(gamma, r_A, guess):
 
     # M = var('M')
     front_cont = ((gamma+1)/2)**(-(gamma+1)/(2*(gamma-1)))
-    print('front_cont = ', front_cont)
     sec_cont = (gamma-1)/2
-    print('sec_cont = ', sec_cont)
     func = lambda M: (((front_cont)*((1+sec_cont*M**2)**((gamma+1)/(2*(gamma-1)))))/M) - r_A
     sol = fsolve(func, guess)
 
@@ -412,7 +413,7 @@ def h2_tableS(Temp):
     :param Temp: temperature in K
     :return S_hat: entropy in J/mol-K
     '''
-    h2_table = pd.read_csv('./tables/Hydrogen_H2_table.csv')
+    h2_table = pd.read_csv(TABLES / 'Hydrogen_H2_table.csv')
 
     idx = (h2_table['T']-Temp).abs().idxmin()
     T_cloest = h2_table['T'][idx]
@@ -433,7 +434,7 @@ def hf_tableS(Temp):
     :param Temp: temperature in K
     :return S_hat: entropy in J/mol-K
     '''
-    hf_table = pd.read_csv('./tables/HydrogenFluoride_HF_table.csv')
+    hf_table = pd.read_csv(TABLES / 'HydrogenFluoride_HF_table.csv')
 
     idx = (hf_table['T']-Temp).abs().idxmin()
     T_cloest = hf_table['T'][idx]
@@ -454,7 +455,7 @@ def f2_tableS(Temp):
     :param Temp: temperature in K
     :return S_hat: entropy in J/mol-K
     '''
-    f2_table = pd.read_csv('./tables/Fluorine_F2_table.csv')
+    f2_table = pd.read_csv(TABLES / 'Fluorine_F2_table.csv')
 
     idx = (f2_table['T']-Temp).abs().idxmin()
     T_cloest = f2_table['T'][idx]

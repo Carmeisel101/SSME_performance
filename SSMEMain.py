@@ -24,15 +24,21 @@ if __name__ == '__main__':
     gamma, R, cp_total, cv, LawOfMassAction_df = OCC(FEE_T, p_starting, FuelOxidizer_ratio)
     print('gamma = ', gamma)
 
-    m_dotOx, v_eOx, p_eOx, ThrustOx, c_TOx, I_spOx, T_e_Ox = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting)
+    p_sea_level = 101325 # Pa
+    m_dotOx, v_eOx, p_eOx, ThrustOx, c_TOx, I_spOx, T_e_Ox, M_eOx = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting)
+    _, _, _, ThrustOx_SL, c_TOx_SL, I_spOx_SL, _, _ = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting, p_sea_level)
 
+    print('Ox exit Mach number = ', M_eOx)
     print('Ox mass flow rate = ', m_dotOx, 'kg/s')
     print('Ox exit velocity = ', v_eOx, 'm/s')
     print('Ox exit pressure = ', p_eOx, 'Pa')
-    print('Ox thrust = ', ThrustOx, 'N')
-    print('Ox thrust coefficient = ', c_TOx)
-    print('Ox specific impulse = ', I_spOx, 's')
     print('Ox exit temperature = ', T_e_Ox, 'K')
+    print('Ox thrust (vacuum) = ', ThrustOx, 'N')
+    print('Ox thrust coefficient (vacuum) = ', c_TOx)
+    print('Ox specific impulse (vacuum) = ', I_spOx, 's')
+    print('Ox thrust (sea level) = ', ThrustOx_SL, 'N')
+    print('Ox thrust coefficient (sea level) = ', c_TOx_SL)
+    print('Ox specific impulse (sea level) = ', I_spOx_SL, 's')
 
 
     print('Flourine Problem')

@@ -22,6 +22,16 @@ This is a simple model of the Space Shuttle Main Engine (SSME) performance. It i
 
 </div>
 
+## Running it
+
+Requires Python 3.11+ (tested on 3.15).
+
+```bash
+make setup   # create .venv and install requirements.txt
+make         # run the model (SSMEMain.py)
+make test    # regression checks
+```
+
 
 ## Oxygen First Enthalpy Exchanger
 We begin with computing the equivalence ratio $\phi$ for the oxygen first enthalpy exchanger. The equivalence ratio is defined as the ratio of the mass of fuel to the mass of oxidizer. The mass of fuel is the mass of hydrogen, and the mass of oxidizer is the mass of oxygen. The mass of hydrogen is $\phi \frac{mol_{O_{2}}}{mol_{H_{2}}} = \Phi$
@@ -283,13 +293,23 @@ Then once you have the mass flow rate you can calculate the thrust, specific imp
 
 <div align="center">
 
-$Thrust = \dot{m} v_{e}+p_{e}A_{e} - pA_{t}$
+$Thrust = \dot{m} v_{e}+(p_{e} - p_{a})A_{e}$
 
 $I_{sp} = \frac{Thrust}{\dot{m} g_{0}}$
 
 $C_{T} = \frac{Thrust}{pA_{t}}$
 
 </div>
+
+The thrust comes from a momentum balance on a control volume around the engine, so the only pressure term is the exit-plane imbalance $(p_{e} - p_{a})A_{e}$. The code reports vacuum ($p_{a} = 0$) and sea-level ($p_{a} = 101325$ Pa) values. Chamber pressure appears only in the normalization of $C_{T}$.
+
+| Output | Vacuum | Sea level |
+|--------|--------|-----------|
+| Thrust | 2.207 MN | 1.785 MN |
+| $C_{T}$ | 1.986 | 1.606 |
+| $I_{sp}$ | 441.6 s | 357.1 s |
+
+For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 
 
 ## Code Flow

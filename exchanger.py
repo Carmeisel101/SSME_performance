@@ -22,11 +22,9 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     h_f_h = h_table_f(298)/1000
     h_oh_f = oh_table_f(298)/1000  # KJ/mol
 
-    b_hat_table = pd.DataFrame(columns=['substance', 'b_hat'])
-    b_hat_table = b_hat_table.append({'substance': 'H2', 'b_hat': 0.0266}, ignore_index=True)
-    b_hat_table = b_hat_table.append({'substance': 'H2O', 'b_hat': 0.03049}, ignore_index=True)
-    b_hat_table = b_hat_table.append({'substance': 'O2', 'b_hat': 0.0318}, ignore_index=True)
-    b_hat_table = b_hat_table.append({'substance': 'N2', 'b_hat': 0.0391}, ignore_index=True)
+    # Van der Waals co-volume b_hat (L/mol)
+    b_hat_table = pd.DataFrame({'substance': ['H2', 'H2O', 'O2', 'N2'],
+                                'b_hat': [0.0266, 0.03049, 0.0318, 0.0391]})
 
     b_hat_h2 = b_hat_table['b_hat'][0]
     b_hat_o2 = b_hat_table['b_hat'][2]
@@ -150,7 +148,7 @@ def OCC(FEE_T, p_starting, FO_ratio):
 
     # sum m_hat_(i)[i=0 to i=3]
     m_hat_total = sum(LawOfMassAction_df['m_hat_(i)'])-LawOfMassAction_df['m_hat_(i)'][4]
-    LawOfMassAction_df['m_hat_(i)'][4] = m_hat_total
+    LawOfMassAction_df.loc[4, 'm_hat_(i)'] = m_hat_total
     LawOfMassAction_df['Y_(i)'] = LawOfMassAction_df['m_hat_(i)'] / m_hat_total
 
     h2_cp = h2_table_cp(FEE_T)
@@ -186,8 +184,9 @@ def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
     :return b_hat_table the Van der Waals table of constants - edited
     '''
 
-    b_hat_table.append({'substance': 'F2', 'b_hat': 0.02896}, ignore_index = True)
-    b_hat_table.append({'substance': 'HF', 'b_hat': 0.0739}, ignore_index = True)
+    b_hat_table = pd.concat([b_hat_table,
+                             pd.DataFrame({'substance': ['F2', 'HF'], 'b_hat': [0.02896, 0.0739]})],
+                            ignore_index=True)
 
     b_hat_f2 = b_hat_table['b_hat'][3]
     F2_inject_temp = Ox_inject_temp
@@ -212,14 +211,17 @@ def FEE_F(phi, p_starting, del_h2_hat, b_hat_table, Ox_inject_temp):
 
     return b_hat_table, T
 
-def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting):
+def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting, p_ambient=0.0):
     '''
     This is a function that returns the performance of the oxidizer nozzle
-    :param ThroatRadius:
-    :param ExitRadius:
-    :param gamma:
-    :param FEE_T:
-    :return:
+    :param ThroatRadius: throat radius in inches
+    :param ExitRadius: exit radius in inches
+    :param gamma: ratio of specific heats (frozen, from OCC)
+    :param FEE_T: chamber temperature in K
+    :param R: gas constant in kJ/kg-K
+    :param p_starting: chamber pressure in Pa
+    :param p_ambient: ambient pressure in Pa (0 = vacuum, 101325 = sea level)
+    :return: m_dot, v_e, p_e, Thrust, c_T, I_sp, T_e, M_e
     '''
 
     Area_ratio = (ExitRadius/ThroatRadius)**2
@@ -229,8 +231,7 @@ def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting):
     R = float(R)
     R = R*1000 # convert to J/kg-K
 
-    M_e = MachSolve(gamma, Area_ratio, 5.0)
-    print('M_e = ', M_e)
+    M_e = float(MachSolve(gamma, Area_ratio, 5.0)[0])
     T_e = FEE_T*((1+((gamma-1)/2)*M_e**2)**(-1))
     v_e = M_e * np.sqrt(gamma * R * T_e)
     p_e = p_starting * (1 + ((gamma - 1) / 2) * M_e ** 2) ** (-gamma / (gamma - 1))
@@ -241,11 +242,16 @@ def OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting):
     m_dot = (p_starting * np.pi * (ThroatRadius)**2) / (np.sqrt(FEE_T)) * \
         np.sqrt(gamma/R)*((2/(gamma+1))**((gamma+1)/(2*(gamma-1))))
 
-    Thurst = m_dot * v_e + p_e * np.pi * ExitRadius**2 - p_starting * np.pi * ThroatRadius**2
-    c_T = Thurst / (p_starting * np.pi * ThroatRadius**2)
-    I_sp = Thurst/ (m_dot * 9.81)
+    A_e = np.pi * ExitRadius**2
+    A_t = np.pi * ThroatRadius**2
 
-    return m_dot, v_e, p_e, Thurst, c_T, I_sp, T_e
+    # Control-volume momentum balance: F = m_dot*v_e + (p_e - p_a)*A_e.
+    # Chamber pressure only enters through c_T's normalization (p_c*A_t), not the thrust itself.
+    Thrust = m_dot * v_e + (p_e - p_ambient) * A_e
+    c_T = Thrust / (p_starting * A_t)
+    I_sp = Thrust / (m_dot * 9.81)
+
+    return m_dot, v_e, p_e, Thrust, c_T, I_sp, T_e, M_e
 
 def FCC(FEE_F):
     '''
