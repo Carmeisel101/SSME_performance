@@ -1,4 +1,6 @@
-# Space Shuttle Main Engine (SSME) performance model
+# rs25-gone-fluorine
+
+*The Space Shuttle Main Engine, modeled from the thermo tables up, then switched to fluorine.*
 
 A performance model of the Space Shuttle Main Engine, built from the course data of Dr. Rodney Bowersox. It finds the chamber temperature and equilibrium gas composition from an energy balance on the propellants, then computes ideal nozzle performance (thrust, thrust coefficient, specific impulse) in vacuum and at sea level. It runs two engines:
 

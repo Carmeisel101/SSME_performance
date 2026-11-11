@@ -1,4 +1,4 @@
-# SSME performance model
+# rs25-gone-fluorine: Space Shuttle Main Engine (RS-25) performance model
 #
 #   make setup      create .venv and install requirements.txt
 #   make            run the model (SSMEMain.py)
