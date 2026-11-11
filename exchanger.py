@@ -2,6 +2,11 @@ from Iterater import *
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
+from scipy.optimize import brentq
+
+# Molar masses in g/mol, used everywhere (SSMEMain, FEE, OCC)
+MOLAR_MASS = {'H2': 2.01588, 'O2': 31.9988, 'H2O': 18.01528, 'OH': 17.00734, 'H': 1.00794}
+R_HAT = 8.314  # J/mol-K
 
 
 def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
@@ -11,16 +16,13 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     :param p_starting: starting pressure in Pa
     :param Ox_inject_temp: temperature of oxygen injection in K
     :param phi: equivalence ratio
-    :return T the temperature of the first enthalpy exchanger
-    :return del_h_total the total enthalpy change in the first enthalpy exchanger
+    :return T the complete-combustion (no dissociation) temperature in K: the first estimate
+    :return del_h_total enthalpy available to heat the products, J per mol O2
+    :return del_h2_hat the enthalpy of the injected H2, J/mol
     :return b_hat_table the table of b_hat values
-    :return del_h2_hat the enthalpy change of H2
+    :return h_reactants enthalpy of the injected propellants, J per mol O2
     '''
 
-
-    h_f_h2o = abs(h2o_table_f(298)) #J/mol
-    h_f_h = h_table_f(298)/1000
-    h_oh_f = oh_table_f(298)/1000  # KJ/mol
 
     # Van der Waals co-volume b_hat (L/mol)
     b_hat_table = pd.DataFrame({'substance': ['H2', 'H2O', 'O2', 'N2'],
@@ -29,25 +31,49 @@ def FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi):
     b_hat_h2 = b_hat_table['b_hat'][0]
     b_hat_o2 = b_hat_table['b_hat'][2]
 
+    # injected propellant enthalpy (J/mol): sensible + real-gas pressure correction b*(p - p_ref)
     del_h2_hat = h2_tableH(Hydr_inject_temp) + b_hat_h2*(p_starting - 101325)/1000
     del_o2_hat = o2_tableH(Ox_inject_temp) + b_hat_o2*(p_starting - 101325)/1000
     mols_h2 = phi*2
     mols_o2 = 1
 
-    del_h_total = del_h2_hat*mols_h2 + del_o2_hat*mols_o2
-    # At this point the chemical equation is O2 + mols*H2 -> (phi-2)*H2 +2H2O
-    del_h_total = del_h_total + 2*h_f_h2o
+    # Complete combustion, per mole of O2: O2 + 2phi H2 -> 2 H2O + (2phi - 2) H2
+    # Energy available to heat the products = reactant enthalpy + heat released forming 2 H2O
+    del_h_total = del_h2_hat*mols_h2 + del_o2_hat*mols_o2 - 2*H_F_298['H2O']
 
-    # weighting function
-    r = 0.17947269916082
-    q = (1- r)/2
+    # First estimate of the chamber temperature: the single T at which the products'
+    # sensible enthalpy equals that energy (no dissociation yet, so this is an upper bound)
+    def energy_residual(T):
+        return 2*sensible_enthalpy('H2O', T) + (mols_h2 - 2)*sensible_enthalpy('H2', T) - del_h_total
 
-    T_h2o = h2o_tableT(q*del_h_total)
-    T_h2 = h2_tableT(r*del_h_total)
+    T = brentq(energy_residual, 300, 4900)
+    h_reactants = del_h2_hat*mols_h2 + del_o2_hat*mols_o2
 
-    T = (T_h2o + T_h2)/2
+    return T, del_h_total, del_h2_hat, b_hat_table, h_reactants
 
-    return T, del_h_total, del_h2_hat, b_hat_table
+
+def ChamberTemperature(FEE_T, p_starting, FO_ratio, h_reactants):
+    '''
+    Adiabatic chamber temperature with dissociation (the second enthalpy exchanger).
+    Finds the T at which the equilibrium products from OCC carry the same enthalpy
+    as the injected propellants. Dissociation absorbs energy, so the answer lies
+    below the complete-combustion estimate FEE_T.
+    :param FEE_T: complete-combustion temperature from FEE in K (upper bracket)
+    :param p_starting: chamber pressure in Pa
+    :param FO_ratio: fuel to oxidizer mass ratio
+    :param h_reactants: enthalpy of the injected propellants, J per mol O2
+    :return T_c: chamber temperature in K
+    '''
+    l = MOLAR_MASS['H2']/(FO_ratio*MOLAR_MASS['O2'])  # mol O2 per mol H2, as in OCC
+    species = ['H2O', 'H2', 'H', 'OH']                 # order of OCC's mole table
+
+    def energy_residual(T):
+        mols = OCC(T, p_starting, FO_ratio)[4]['mols'][0:4]
+        # OCC works per mol H2; dividing by l puts the products per mol O2
+        h_products = sum(float(n)/l*total_enthalpy(sp, T) for sp, n in zip(species, mols))
+        return h_products - h_reactants
+
+    return brentq(energy_residual, 2000, FEE_T, xtol=1e-6)
 
 def OCC(FEE_T, p_starting, FO_ratio):
     '''
@@ -97,16 +123,15 @@ def OCC(FEE_T, p_starting, FO_ratio):
     g_r_h2 = 2*g_f_h - g_f_h2             # H2  -> 2H
     g_r_h2o = g_f_h + g_f_oh - g_f_h2o    # H2O -> H + OH
 
-    k_h2 = ((p_starting/101325)**-1)*np.exp(-g_r_h2/(8.314*FEE_T))
-    k_h2o = ((p_starting/101325)**-1)*np.exp(-g_r_h2o/(8.314*FEE_T))
+    k_h2 = ((p_starting/101325)**-1)*np.exp(-g_r_h2/(R_HAT*FEE_T))
+    k_h2o = ((p_starting/101325)**-1)*np.exp(-g_r_h2o/(R_HAT*FEE_T))
 
 
     # k_h2o = 0.007149
     # k_h2 = 0.011874839
 
-    mass_fuel = 2.02 #H2
-    mass_oxider = mass_fuel/FO_ratio
-    l = mass_oxider/ (2*15.99)
+    # mol O2 per mol H2 fed: (1/FO_ratio) kg O2 per kg H2, converted to moles
+    l = MOLAR_MASS['H2']/(FO_ratio*MOLAR_MASS['O2'])
 
     # Products per mole of H2 fed: H2 + l O2 -> N_H2O H2O + N_H2 H2 + N_H H + N_OH OH
     #   H atoms:  2N_H2O + 2N_H2 + N_H + N_OH = 2
@@ -131,10 +156,10 @@ def OCC(FEE_T, p_starting, FO_ratio):
     N_h2o, N_h2, N_h, N_oh = (float(n) for n in np.exp(log_n))
     N_total = N_h + N_oh + N_h2 + N_h2o
 
-    molar_mass_h2o = 18.01528
-    molar_mass_h = 1.00794
-    molar_mass_oh = 17.00734
-    molar_mass_h2 = 2.01588
+    molar_mass_h2o = MOLAR_MASS['H2O']
+    molar_mass_h = MOLAR_MASS['H']
+    molar_mass_oh = MOLAR_MASS['OH']
+    molar_mass_h2 = MOLAR_MASS['H2']
 
     LawOfMassAction_df = pd.DataFrame({'substance': ['N_H2O', 'N_H2', 'N_H', 'N_OH', 'Total'],
                                        'mols': [N_h2o, N_h2, N_h, N_oh, N_total]})
@@ -165,7 +190,7 @@ def OCC(FEE_T, p_starting, FO_ratio):
 
     LawOfMassAction_df = pd.concat([LawOfMassAction_df, cp_df], axis=1)
 
-    R = 8.314/m_hat_total
+    R = R_HAT/m_hat_total
     cv = cp_total - R
 
     gamma = cp_total/cv

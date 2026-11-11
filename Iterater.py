@@ -472,3 +472,49 @@ def f2_tableS(Temp):
     return S_hat
 # Me = MachSolve(1.237115, 77.5426, 5)
 # print('Me = ', Me)
+
+def table_interp(filename, column, Temp):
+    '''
+    Linear interpolation of one column of a thermo table in temperature
+    :param filename: table file name inside ./tables
+    :param column: column to interpolate
+    :param Temp: temperature in K (must lie inside the table)
+    :return: interpolated value
+    '''
+    table = pd.read_csv(TABLES / filename)
+    T_min, T_max = table['T'].min(), table['T'].max()
+    if not T_min <= Temp <= T_max:
+        raise ValueError(f'T = {Temp} K is outside {filename} ({T_min}-{T_max} K)')
+    return float(np.interp(Temp, table['T'], table[column]))
+
+
+H_F_298 = {'H2O': -241845.0, 'H2': 0.0, 'H': 217977.0, 'OH': 38985.0, 'O2': 0.0}  # J/mol, from the tables
+
+
+def sensible_enthalpy(species, Temp):
+    '''
+    Sensible enthalpy h(T) - h(298 K) in J/mol, built from the tables:
+      H2, O2 : tabulated H - H_298 (H2 in kcal/mol)
+      H2O    : tabulated h_f column
+      H      : constant cp (monatomic ideal gas)
+      OH     : from its formation enthalpy, since dh_f(OH) = h_OH - (1/2)h_H2 - (1/2)h_O2
+    '''
+    if species == 'H2':
+        return table_interp('Hydrogen_H2_table.csv', 'H*-H*_298', Temp)*4184
+    if species == 'O2':
+        return table_interp('o2_table.csv', 'H*-H*_298', Temp)
+    if species == 'H2O':
+        return table_interp('H2O_table.csv', 'h_f', Temp)
+    if species == 'H':
+        return table_interp('H_table.csv', 'cp_hat', Temp)*(Temp - 298)
+    if species == 'OH':
+        return (table_interp('OH_table.csv', 'h_hat', Temp) - H_F_298['OH']
+                + 0.5*sensible_enthalpy('H2', Temp) + 0.5*sensible_enthalpy('O2', Temp))
+    raise ValueError(f'no enthalpy data for {species}')
+
+
+def total_enthalpy(species, Temp):
+    '''
+    Formation + sensible enthalpy in J/mol (elements H2, O2 are zero at 298 K, the tables' reference)
+    '''
+    return H_F_298[species] + sensible_enthalpy(species, Temp)

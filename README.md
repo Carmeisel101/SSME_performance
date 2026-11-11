@@ -52,25 +52,31 @@ $\Delta \hat{h_{mix}} = \Phi \Delta \hat{h_{H_{2}}} + \Delta \hat{h_{O_{2}}}$
 
 </div>
 
-Which is then applied to our chemical equation:
+With $\Phi = 2\phi$ moles of $H_{2}$ per mole of $O_{2}$, complete combustion (no dissociation) gives:
 
 <div align="center">
 
-$O_{2} + \Phi H_{2} \rightarrow (2-\Phi)H_{2} + 2H_{2}O$
+$O_{2} + \Phi H_{2} \rightarrow 2H_{2}O + (\Phi-2)H_{2}$
 
 </div>
 
-Note: notice the $(2-\Phi)H_{2}$ portion of the equation. This is used since we calculated the enthalpy of formation for hydrogen (H) and not hydrogen gas $H_{2}$.
-
-From here we can sum the molar enthalpies of formation to get the first estimate of the first reaction enthalpy:
+The energy available to heat the products is the propellant enthalpy plus the heat released forming two moles of water:
 
 <div align="center">
 
-$\Delta \hat{h_{r}} = \Phi \Delta \hat{h_{H_{2}}} + 2( \Delta \hat{h_{H_{2}O}} )$
+$\Delta \hat{h}_{total} = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}} - 2\Delta \hat{h}_{f,H_{2}O}^{298}$
 
 </div>
 
-We are to then interpolate this value from the given turn tables to get the actual value of the combustion temperature for Oxygen First Enthalpy Exchanger. This is done in `exchanger.py`. At the end of this process we have the combustion temperature for the Oxygen First Enthalpy Exchanger, $T_{c}$.
+The first estimate of the chamber temperature, $T_{FEE}$, is the single temperature at which the products absorb exactly that energy, found with `scipy.optimize.brentq`:
+
+<div align="center">
+
+$2\left[\hat{h}_{H_{2}O}(T_{FEE}) - \hat{h}_{H_{2}O}(298)\right] + (\Phi-2)\left[\hat{h}_{H_{2}}(T_{FEE}) - \hat{h}_{H_{2}}(298)\right] = \Delta \hat{h}_{total}$
+
+</div>
+
+This gives $T_{FEE} \approx 4617$ K. Because it ignores dissociation it is an upper bound; the chamber temperature itself comes from the second enthalpy exchanger below.
 
 ## Oxygen - Combustion Chamber
 
@@ -197,7 +203,7 @@ $K_{H_{2}\rightarrow 2H} = \frac{N_{H}^{2}}{N_{H_{2}} N_{Total}}$
 
 </div>
 
-The code solves them with `scipy.optimize.fsolve` in terms of $\ln N_{(i)}$, which keeps every mole number positive, starting from complete combustion ($N_{H_{2}O} = 2l$, $N_{H_{2}} = 1 - 2l$). At the current chamber temperature this gives $N_{H_{2}O} = 0.6844$, $N_{H_{2}} = 0.2529$, $N_{H} = 0.0488$, $N_{OH} = 0.0766$.
+The code solves them with `scipy.optimize.fsolve` in terms of $\ln N_{(i)}$, which keeps every mole number positive, starting from complete combustion ($N_{H_{2}O} = 2l$, $N_{H_{2}} = 1 - 2l$). At the chamber temperature $T_{c}$ (see below) this gives $N_{H_{2}O} = 0.6763$, $N_{H_{2}} = 0.2559$, $N_{H} = 0.0530$, $N_{OH} = 0.0827$.
 
 We can then solve for $N_{H_{2}O}$, $N_{H_{2}}$, $N_{H}$, and $N_{OH}$:
 
@@ -242,6 +248,18 @@ Resulting in use getting a gamma of:
 $\gamma = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{\sum_{i} X_{(i)}m_{(i)}}} = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{m_{(total)}}}=\frac{c_{p}}{c_{p} - R}  =\frac{c_{p}}{c_{v}}$
 
 </div>
+
+## Oxygen - Chamber Temperature (Second Enthalpy Exchanger)
+
+Breaking $H_{2}O$ and $H_{2}$ apart into $H$ and $OH$ absorbs energy, so the dissociated products reach a lower temperature than $T_{FEE}$. The composition depends on temperature (through $K_{n}$) and the temperature depends on the composition (through the energy balance), so `ChamberTemperature` solves both together: for a trial $T$ it computes the equilibrium mixture with the combustion-chamber step above and checks the energy balance, per mole of $O_{2}$,
+
+<div align="center">
+
+$\sum_{i} N_{(i)} \left[\Delta \hat{h}_{f(i)}^{298} + \hat{h}_{(i)}(T_{c}) - \hat{h}_{(i)}(298)\right] = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}}$
+
+</div>
+
+and `brentq` adjusts $T$ between 2000 K and $T_{FEE}$ until both sides match. The sensible enthalpies come from the tables: $H_{2}$, $O_{2}$ and $H_{2}O$ directly, $H$ from its constant $c_{p}$, and $OH$ from its tabulated enthalpy of formation, $\hat{h}_{OH} = \Delta \hat{h}_{f,OH}(T) + \frac{1}{2}\hat{h}_{H_{2}} + \frac{1}{2}\hat{h}_{O_{2}}$. The result is $T_{c} \approx 3949$ K, which is used for $\gamma$, $R$ and the nozzle. A Cantera equilibrium calculation with the same inputs gives 3881 K; most of the difference is that this model leaves out $O$ and $O_{2}$.
 
 ## Oxygen Nozzle Performance
 
@@ -291,9 +309,9 @@ The thrust comes from a momentum balance on a control volume around the engine, 
 
 | Output | Vacuum | Sea level |
 |--------|--------|-----------|
-| Thrust | 2.152 MN | 1.730 MN |
-| $C_{T}$ | 1.937 | 1.557 |
-| $I_{sp}$ | 475.1 s | 381.9 s |
+| Thrust | 2.151 MN | 1.729 MN |
+| $C_{T}$ | 1.936 | 1.556 |
+| $I_{sp}$ | 478.8 s | 384.8 s |
 
 For reference, the real RS‑25 at 109% power is rated at about 2.28 MN and 452 s in vacuum.
 

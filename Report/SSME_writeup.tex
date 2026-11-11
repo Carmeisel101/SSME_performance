@@ -127,56 +127,27 @@
         \Delta \hat{h}_{mix} = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}}
     \end{equation}
     
-    We can then apply this to our chemical equation.
+    With $\Phi = 2\phi$ moles of $H_{2}$ per mole of $O_{2}$, complete combustion (no dissociation) gives
 
     \begin{equation}
-        O_{2} + \Phi H_{2} \rightarrow (2-\Phi)H_{2} +2H_{2}O
+        O_{2} + \Phi H_{2} \rightarrow 2H_{2}O + (\Phi-2)H_{2}
     \end{equation}
 
-    Note: notice the $(2-\Phi)$ in the equation above. This is because we calculated the enthalpy of formation for hydrogen and not 
-    hydrogen gas $H_{2}$.
-    
-    \vspace*{6pt}
-
-    From here we can sum the molar enthalpies of formation to get the first estimate of the first reaction enthalpy
+    The energy available to heat the products is the propellant enthalpy plus the heat released forming two moles of water:
 
     \begin{equation}
-        \Delta \hat{h}_{r} = \Phi \Delta \hat{h}_{H_{2}} + 2(\Delta \hat{h}_{H_{2}O})
+        \Delta \hat{h}_{total} = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}} - 2\Delta \hat{h}^{298}_{f,H_{2}O}
     \end{equation}
 
-    From here we go into our Temperature finding Algorithm. We are given the following parameters:
+    The first estimate of the chamber temperature, $T_{FEE}$, is the single temperature at which the products absorb exactly
+    that energy. It is found with \verb|scipy.optimize.brentq|:
 
     \begin{equation}
-        r = \Phi - 1
+        2\left[\hat{h}_{H_{2}O}(T_{FEE}) - \hat{h}_{H_{2}O}(298)\right] + (\Phi-2)\left[\hat{h}_{H_{2}}(T_{FEE}) - \hat{h}_{H_{2}}(298)\right] = \Delta \hat{h}_{total}
     \end{equation}
 
-    \begin{equation}
-        q = 1 
-    \end{equation}
-
-    \begin{equation}
-        r_{percent} = \frac{r}{r+q}
-    \end{equation}
-
-    \begin{equation}
-        q_{percent} = \frac{q}{r+q}
-    \end{equation}
-
-    From here we use the values of (Eq. 6) - (Eq. 9) to calculate the temperature of the first enthalpy exchanger.
-
-    \begin{equation}
-        T_{H_{2}} = \verb|h2_tableT|(\Delta \hat{h}_{r})
-    \end{equation}
-
-    \begin{equation}
-        T_{H_{2}O} = \verb|ho2_tableT|(q_{percent} \Delta \hat{h}_{r})
-    \end{equation}
-
-    Once we have returned the values of Temperature, we then average the two values to get the final temperature of the first enthalpy exchanger.
-
-    \begin{equation}
-        T_{C} = \frac{T_{H_{2}} + T_{H_{2}O}}{2}
-    \end{equation}
+    This gives $T_{FEE} \approx 4617$ K. Because it ignores dissociation it is an upper bound; the chamber temperature
+    comes from the second enthalpy exchanger in Section \ref{sec:chamber-temperature}.
 
     \vspace*{6pt}
 
@@ -318,10 +289,10 @@
     The four coupled equations (two atom balances and two equilibrium relations) are solved with
     \verb|scipy.optimize.fsolve| in terms of $\ln N_{(i)}$, which keeps every mole number positive.
     The starting guess is complete combustion, $N_{H_{2}O} = 2l$ and $N_{H_{2}} = 1 - 2l$.
-    At the current chamber temperature the solution is:
+    At the chamber temperature $T_{c}$ (Section \ref{sec:chamber-temperature}) the solution is:
 
     \begin{equation}
-        N_{H_{2}O} = 0.6844, \quad N_{H_{2}} = 0.2529, \quad N_{H} = 0.0488, \quad N_{OH} = 0.0766
+        N_{H_{2}O} = 0.6763, \quad N_{H_{2}} = 0.2559, \quad N_{H} = 0.0530, \quad N_{OH} = 0.0827
     \end{equation}
 
     \begin{center}
@@ -366,6 +337,30 @@
         \gamma = \frac{c_{p}}{c_{p} - \frac{\hat{R}}{\sum_{i} X_{(i)}m_{(i)}}} = \frac{c_{p}}{c_{p}- \frac{\hat{R}}{m_{Total}}} = \frac{c_{p}}{c_{p}- R} = \frac{c_{p}}{c_{v}}
     \end{equation}
     
+    \subsection{Chamber Temperature (Second Enthalpy Exchanger)}
+    \label{sec:chamber-temperature}
+
+    Breaking $H_{2}O$ and $H_{2}$ apart into $H$ and $OH$ absorbs energy, so the dissociated products reach a lower
+    temperature than $T_{FEE}$. The composition depends on temperature through $K_{n}$, and the temperature depends on the
+    composition through the energy balance, so the two are solved together. For a trial temperature the combustion-chamber
+    step gives the equilibrium mixture, and the energy balance per mole of $O_{2}$ is checked:
+
+    \begin{equation}
+        \sum_{i} N_{(i)} \left[\Delta \hat{h}^{298}_{f(i)} + \hat{h}_{(i)}(T_{c}) - \hat{h}_{(i)}(298)\right] = \Phi \Delta \hat{h}_{H_{2}} + \Delta \hat{h}_{O_{2}}
+    \end{equation}
+
+    \verb|brentq| adjusts the temperature between 2000 K and $T_{FEE}$ until both sides match. The sensible enthalpies of
+    $H_{2}$, $O_{2}$ and $H_{2}O$ come straight from the tables, $H$ uses its constant $c_{p}$, and $OH$ is built from its
+    tabulated enthalpy of formation:
+
+    \begin{equation}
+        \hat{h}_{OH}(T) - \hat{h}_{OH}(298) = \Delta \hat{h}_{f,OH}(T) - \Delta \hat{h}_{f,OH}(298) + \frac{1}{2}\left[\hat{h}_{H_{2}}(T) - \hat{h}_{H_{2}}(298)\right] + \frac{1}{2}\left[\hat{h}_{O_{2}}(T) - \hat{h}_{O_{2}}(298)\right]
+    \end{equation}
+
+    The same construction applied to $H_{2}O$ reproduces its tabulated sensible enthalpy within 0.07\%. The result is
+    $T_{c} \approx 3949$ K, which is used for $\gamma$, $R$ and the nozzle. A Cantera equilibrium calculation with the same
+    inputs gives 3881 K; most of the difference is that this model leaves out $O$ and $O_{2}$.
+
     \subsection{Nozzle Performance}
     We begin by defining the Area Ratio:
 

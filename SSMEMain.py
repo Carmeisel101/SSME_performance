@@ -7,26 +7,28 @@ if __name__ == '__main__':
     p_starting = 204 #starting pressure in atm
     p_starting = p_starting * 101325 #convert to pascals
     FuelOxidizer_ratio = 0.166
-    mol_O2 = 31.998 # g/mol #single molecule mass
-    mol_H2 = 2.016 # g/mol #single molecule mass
-    phi = (FuelOxidizer_ratio* mol_O2 / mol_H2)/2
+    # equivalence ratio: (mol H2 per mol O2) / 2, stoichiometric being 2 H2 + O2
+    phi = (FuelOxidizer_ratio * MOLAR_MASS['O2'] / MOLAR_MASS['H2'])/2
     Hydr_inject_temp = 850 #K
     Ox_inject_temp = 530   #K
     ThroatRadius = 5.15 #inches
     ExitRadius = 45.35 #inches
-    FEE_T, FEE_del_h_total, del_h2_hat, b_hat_table = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
+    FEE_T, FEE_del_h_total, del_h2_hat, b_hat_table, h_reactants = FEE(Hydr_inject_temp, p_starting, Ox_inject_temp, phi)
     print('phi = ', phi)
 
-    print('Temperature of the first enthalpy exchanger = ', FEE_T, 'K')
+    print('Temperature of the first enthalpy exchanger (complete combustion) = ', FEE_T, 'K')
     print('Total enthalpy change in the first enthalpy exchanger = ', FEE_del_h_total, 'J')
 
+    # second enthalpy exchanger: equilibrium (dissociated) products carry the reactant enthalpy
+    T_c = ChamberTemperature(FEE_T, p_starting, FuelOxidizer_ratio, h_reactants)
+    print('Chamber temperature (equilibrium, with dissociation) = ', T_c, 'K')
 
-    gamma, R, cp_total, cv, LawOfMassAction_df = OCC(FEE_T, p_starting, FuelOxidizer_ratio)
+    gamma, R, cp_total, cv, LawOfMassAction_df = OCC(T_c, p_starting, FuelOxidizer_ratio)
     print('gamma = ', gamma)
 
     p_sea_level = 101325 # Pa
-    m_dotOx, v_eOx, p_eOx, ThrustOx, c_TOx, I_spOx, T_e_Ox, M_eOx = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting)
-    _, _, _, ThrustOx_SL, c_TOx_SL, I_spOx_SL, _, _ = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, FEE_T, R, p_starting, p_sea_level)
+    m_dotOx, v_eOx, p_eOx, ThrustOx, c_TOx, I_spOx, T_e_Ox, M_eOx = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, T_c, R, p_starting)
+    _, _, _, ThrustOx_SL, c_TOx_SL, I_spOx_SL, _, _ = OxNozzlePerf(ThroatRadius, ExitRadius, gamma, T_c, R, p_starting, p_sea_level)
 
     print('Ox exit Mach number = ', M_eOx)
     print('Ox mass flow rate = ', m_dotOx, 'kg/s')
